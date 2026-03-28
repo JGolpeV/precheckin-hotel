@@ -2,11 +2,16 @@ package com.hotel.view;
 
 import com.hotel.dao.HuespedDAO;
 import com.hotel.model.Huesped;
+import com.hotel.service.HuespedService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.List;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.RowFilter;
 
 public class PanelHuespedes extends JPanel {
 
@@ -20,7 +25,10 @@ public class PanelHuespedes extends JPanel {
     private JTable tabla;
     private DefaultTableModel modeloTabla;
 
-    private HuespedDAO huespedDAO = new HuespedDAO();
+    private JTextField txtBuscar;
+    private TableRowSorter<DefaultTableModel> sorter;
+
+    private HuespedService huespedService = new HuespedService();
 
     public PanelHuespedes() {
         setLayout(new BorderLayout(10, 10));
@@ -67,6 +75,7 @@ public class PanelHuespedes extends JPanel {
         panelFormulario.add(txtNacionalidad, gbc);
 
         panelSuperior.add(panelFormulario, BorderLayout.CENTER);
+        panelSuperior.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
         // Botones
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
@@ -82,7 +91,23 @@ public class PanelHuespedes extends JPanel {
 
         panelSuperior.add(panelBotones, BorderLayout.SOUTH);
 
-        add(panelSuperior, BorderLayout.NORTH);
+        //Buscador huesped
+        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelBusqueda.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder("Búsqueda"),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        panelBusqueda.add(new JLabel("Buscar huésped:"));
+        txtBuscar = new JTextField(20);
+        panelBusqueda.add(txtBuscar);
+
+        JPanel contenedorSuperior = new JPanel(new BorderLayout());
+        contenedorSuperior.add(panelSuperior, BorderLayout.NORTH);
+        contenedorSuperior.add(panelBusqueda, BorderLayout.SOUTH);
+
+        add(contenedorSuperior, BorderLayout.NORTH);
+
 
         // Tabla
         modeloTabla = new DefaultTableModel(
@@ -93,6 +118,8 @@ public class PanelHuespedes extends JPanel {
 
         tabla = new JTable(modeloTabla);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        sorter = new TableRowSorter<>(modeloTabla);
+        tabla.setRowSorter(sorter);
 
         add(new JScrollPane(tabla), BorderLayout.CENTER);
 
@@ -103,33 +130,43 @@ public class PanelHuespedes extends JPanel {
         btnCargar.addActionListener(e -> cargarSeleccionadoEnFormulario());
         btnActualizar.addActionListener(e -> actualizarHuesped());
 
+        txtBuscar.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filtrarTabla();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filtrarTabla();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                filtrarTabla();
+            }
+        });
+
         cargarTabla();
     }
 
     private void guardarHuesped() {
 
-        String nombre = txtNombre.getText().trim();
-        String apellido1 = txtApellido1.getText().trim();
-
-        if (nombre.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "El nombre es obligatorio.");
-            return;
-        }
-
-        if (apellido1.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "El primer apellido es obligatorio.");
-            return;
-        }
-
         try {
             Huesped huesped = new Huesped();
 
-            huesped.setNombre(nombre);
-            huesped.setApellido1(apellido1);
+            huesped.setNombre(txtNombre.getText().trim());
+            huesped.setApellido1(txtApellido1.getText().trim());
             huesped.setApellido2(txtApellido2.getText().trim());
             huesped.setNacionalidad(txtNacionalidad.getText().trim());
 
-            huespedDAO.insertar(huesped);
+            String errorValidacion = huespedService.validarHuesped(huesped);
+            if (errorValidacion != null) {
+                JOptionPane.showMessageDialog(this, errorValidacion);
+                return;
+            }
+
+            huespedService.guardarHuesped(huesped);
 
             JOptionPane.showMessageDialog(this, "Huésped guardado correctamente");
 
@@ -147,7 +184,7 @@ public class PanelHuespedes extends JPanel {
         try {
             modeloTabla.setRowCount(0);
 
-            List<Huesped> lista = huespedDAO.listarTodos();
+            List<Huesped> lista = huespedService.listarTodos();
 
             for (Huesped h : lista) {
                 modeloTabla.addRow(new Object[]{
@@ -193,7 +230,7 @@ public class PanelHuespedes extends JPanel {
         if (confirm != JOptionPane.YES_OPTION) return;
 
         try {
-            boolean ok = huespedDAO.eliminarPorId(id);
+            boolean ok = huespedService.eliminarHuesped(id);
 
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Huésped eliminado correctamente.");
@@ -230,28 +267,21 @@ public class PanelHuespedes extends JPanel {
             return;
         }
 
-        String nombre = txtNombre.getText().trim();
-        String apellido1 = txtApellido1.getText().trim();
-
-        if (nombre.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "El nombre es obligatorio.");
-            return;
-        }
-
-        if (apellido1.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "El primer apellido es obligatorio.");
-            return;
-        }
-
         try {
             Huesped h = new Huesped();
             h.setId(idSeleccionado);
-            h.setNombre(nombre);
-            h.setApellido1(apellido1);
+            h.setNombre(txtNombre.getText().trim());
+            h.setApellido1(txtApellido1.getText().trim());
             h.setApellido2(txtApellido2.getText().trim());
             h.setNacionalidad(txtNacionalidad.getText().trim());
 
-            boolean ok = huespedDAO.actualizar(h);
+            String errorValidacion = huespedService.validarHuesped(h);
+            if (errorValidacion != null) {
+                JOptionPane.showMessageDialog(this, errorValidacion);
+                return;
+            }
+
+            boolean ok = huespedService.actualizarHuesped(h);
 
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Huésped actualizado correctamente.");
@@ -265,6 +295,16 @@ public class PanelHuespedes extends JPanel {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error actualizando huésped: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void filtrarTabla() {
+        String texto = txtBuscar.getText().trim();
+
+        if (texto.isEmpty()) {
+            sorter.setRowFilter(null);
+        } else {
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + texto));
         }
     }
 

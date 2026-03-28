@@ -2,6 +2,7 @@ package com.hotel.view;
 
 import com.hotel.dao.HabitacionDAO;
 import com.hotel.model.Habitacion;
+import com.hotel.service.HabitacionService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -20,7 +21,7 @@ public class PanelHabitaciones extends JPanel {
 
     private Integer idSeleccionado = null;
 
-    private HabitacionDAO habitacionDAO = new HabitacionDAO();
+    private HabitacionService habitacionService = new HabitacionService();
 
     public PanelHabitaciones() {
         setLayout(new BorderLayout(10, 10));
@@ -119,7 +120,7 @@ public class PanelHabitaciones extends JPanel {
             h.setCapacidad((Integer) spCapacidad.getValue());
             h.setEstado((String) cbEstado.getSelectedItem());
 
-            habitacionDAO.insertar(h);
+            habitacionService.guardarHabitacion(h);
 
             JOptionPane.showMessageDialog(this, "Habitación guardada.");
             limpiarCampos();
@@ -153,7 +154,7 @@ public class PanelHabitaciones extends JPanel {
     private void cargarTabla() {
         try {
             modeloTabla.setRowCount(0);
-            List<Habitacion> lista = habitacionDAO.listarTodas();
+            List<Habitacion> lista = habitacionService.listarTodas();
 
             for (Habitacion h : lista) {
                 modeloTabla.addRow(new Object[]{
@@ -201,7 +202,7 @@ public class PanelHabitaciones extends JPanel {
             h.setCapacidad((Integer) spCapacidad.getValue());
             h.setEstado((String) cbEstado.getSelectedItem());
 
-            boolean ok = habitacionDAO.actualizar(h);
+            boolean ok = habitacionService.actualizarHabitacion(h);
 
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Habitación actualizada.");
@@ -252,7 +253,7 @@ public class PanelHabitaciones extends JPanel {
         if (confirm != JOptionPane.YES_OPTION) return;
 
         try {
-            boolean ok = habitacionDAO.eliminarPorId(id);
+            boolean ok = habitacionService.eliminarHabitacion(id);
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Habitación eliminada.");
                 limpiarCampos();

@@ -8,23 +8,29 @@ import com.hotel.model.Habitacion;
 import com.hotel.model.HabitacionItem;
 import com.hotel.model.Huesped;
 import com.hotel.model.HuespedItem;
+import com.hotel.service.EstanciaService;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class PanelEstancias extends JPanel {
 
     private JComboBox<HuespedItem> cbHuesped;
     private JComboBox<HabitacionItem> cbHabitacion;
-    private JTextField txtFechaEntrada;
-    private JTextField txtFechaSalida;
+    private JSpinner spFechaEntrada;
+    private JSpinner spFechaSalida;
     private JComboBox<String> cbEstado;
     private JTextArea txtObservaciones;
 
     private final HuespedDAO huespedDAO = new HuespedDAO();
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
-    private final EstanciaDAO estanciaDAO = new EstanciaDAO();
+    private final EstanciaService estanciaService = new EstanciaService();
+
+    private JTable tablaEstancias;
+    private javax.swing.table.DefaultTableModel modeloTablaEstancias;
 
     public PanelEstancias() {
         setLayout(new BorderLayout(10, 10));
@@ -39,42 +45,73 @@ public class PanelEstancias extends JPanel {
 
         cbHuesped = new JComboBox<>();
         cbHabitacion = new JComboBox<>();
-        txtFechaEntrada = new JTextField(12);
-        txtFechaSalida = new JTextField(12);
+
+        spFechaEntrada = new JSpinner(new SpinnerDateModel());
+        spFechaSalida = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor editorEntrada = new JSpinner.DateEditor(spFechaEntrada, "dd-MM-yyyy");
+        JSpinner.DateEditor editorSalida = new JSpinner.DateEditor(spFechaSalida, "dd-MM-yyyy");
+        spFechaEntrada.setEditor(editorEntrada);
+        spFechaSalida.setEditor(editorSalida);
+
+        // Por defecto fecha entrada hoy y salida +1 día
+        Date hoy = new Date();
+        spFechaEntrada.setValue(hoy);
+
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTime(hoy);
+        cal.add(java.util.Calendar.DAY_OF_MONTH, 1);
+        spFechaSalida.setValue(cal.getTime());
+
         cbEstado = new JComboBox<>(new String[]{"PENDIENTE", "CHECKIN_REALIZADO"});
         txtObservaciones = new JTextArea(4, 20);
 
+        JButton btnBuscarHabitaciones = new JButton("Buscar habitaciones disponibles");
+        JButton btnGuardar = new JButton("Guardar estancia");
+        JButton btnRecargar = new JButton("Recargar huéspedes");
+        JButton btnEliminar = new JButton("Eliminar estancia");
+
         int fila = 0;
 
+        // Huésped
         gbc.gridx = 0; gbc.gridy = fila; gbc.weightx = 0;
         panelFormulario.add(new JLabel("Huésped:"), gbc);
         gbc.gridx = 1; gbc.gridy = fila; gbc.weightx = 1;
         panelFormulario.add(cbHuesped, gbc);
 
+        // Fecha entrada
         fila++;
         gbc.gridx = 0; gbc.gridy = fila; gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Habitación libre:"), gbc);
+        panelFormulario.add(new JLabel("Fecha entrada:"), gbc);
+        gbc.gridx = 1; gbc.gridy = fila; gbc.weightx = 1;
+        panelFormulario.add(spFechaEntrada, gbc);
+
+        // Fecha salida
+        fila++;
+        gbc.gridx = 0; gbc.gridy = fila; gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Fecha salida:"), gbc);
+        gbc.gridx = 1; gbc.gridy = fila; gbc.weightx = 1;
+        panelFormulario.add(spFechaSalida, gbc);
+
+        // Botón buscar habitaciones
+        fila++;
+        gbc.gridx = 1; gbc.gridy = fila; gbc.weightx = 1;
+        panelFormulario.add(btnBuscarHabitaciones, gbc);
+
+        // Habitación
+        fila++;
+        gbc.gridx = 0; gbc.gridy = fila; gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Habitación disponible:"), gbc);
         gbc.gridx = 1; gbc.gridy = fila; gbc.weightx = 1;
         panelFormulario.add(cbHabitacion, gbc);
 
-        fila++;
-        gbc.gridx = 0; gbc.gridy = fila; gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Fecha entrada (YYYY-MM-DD):"), gbc);
-        gbc.gridx = 1; gbc.gridy = fila; gbc.weightx = 1;
-        panelFormulario.add(txtFechaEntrada, gbc);
-
-        fila++;
-        gbc.gridx = 0; gbc.gridy = fila; gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Fecha salida (YYYY-MM-DD):"), gbc);
-        gbc.gridx = 1; gbc.gridy = fila; gbc.weightx = 1;
-        panelFormulario.add(txtFechaSalida, gbc);
-
+        // Estado
         fila++;
         gbc.gridx = 0; gbc.gridy = fila; gbc.weightx = 0;
         panelFormulario.add(new JLabel("Estado:"), gbc);
         gbc.gridx = 1; gbc.gridy = fila; gbc.weightx = 1;
         panelFormulario.add(cbEstado, gbc);
 
+        // Observaciones
         fila++;
         gbc.gridx = 0; gbc.gridy = fila; gbc.weightx = 0;
         gbc.anchor = GridBagConstraints.NORTH;
@@ -83,20 +120,53 @@ public class PanelEstancias extends JPanel {
         panelFormulario.add(new JScrollPane(txtObservaciones), gbc);
 
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnGuardar = new JButton("Guardar estancia");
-        JButton btnRecargar = new JButton("Recargar combos");
-
         panelBotones.add(btnGuardar);
         panelBotones.add(btnRecargar);
+        panelBotones.add(btnEliminar);
 
-        add(panelFormulario, BorderLayout.CENTER);
-        add(panelBotones, BorderLayout.SOUTH);
+        JPanel panelSuperior = new JPanel(new BorderLayout());
+        panelSuperior.add(panelFormulario, BorderLayout.CENTER);
+        panelSuperior.add(panelBotones, BorderLayout.SOUTH);
 
+        add(panelSuperior, BorderLayout.NORTH);
+
+        modeloTablaEstancias = new javax.swing.table.DefaultTableModel(
+                new Object[]{"ID", "Huésped", "Habitación", "Fecha entrada", "Fecha salida", "Estado"}, 0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        tablaEstancias = new JTable(modeloTablaEstancias);
+        add(new JScrollPane(tablaEstancias), BorderLayout.CENTER);
+
+        // Eventos
         btnGuardar.addActionListener(e -> guardarEstancia());
         btnRecargar.addActionListener(e -> cargarCombos());
+        btnBuscarHabitaciones.addActionListener(e -> buscarHabitacionesDisponibles());
+        btnEliminar.addActionListener(e -> eliminarEstanciaSeleccionada());
 
         cargarCombos();
+        cargarTablaEstancias();
     }
+
+    //Verificar que fecha entrada es menos que fecha salida
+    private boolean fechasValidas() {
+        Date entrada = (Date) spFechaEntrada.getValue();
+        Date salida = (Date) spFechaSalida.getValue();
+
+        if (!estanciaService.fechasValidas(entrada, salida)) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "La fecha de salida debe ser posterior a la fecha de entrada."
+            );
+            return false;
+        }
+
+        return true;
+        }
 
     private void cargarCombos() {
         try {
@@ -110,12 +180,6 @@ public class PanelEstancias extends JPanel {
                 cbHuesped.addItem(new HuespedItem(h.getId(), nombreCompleto));
             }
 
-            List<Habitacion> habitaciones = habitacionDAO.listarLibres();
-            for (Habitacion h : habitaciones) {
-                String texto = h.getNumero() + " - " + h.getTipo() + " (" + h.getCapacidad() + " pax)";
-                cbHabitacion.addItem(new HabitacionItem(h.getId(), texto));
-            }
-
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
                     "Error cargando datos: " + e.getMessage(),
@@ -125,12 +189,35 @@ public class PanelEstancias extends JPanel {
         }
     }
 
+    private void cargarTablaEstancias() {
+        try {
+            modeloTablaEstancias.setRowCount(0);
+
+            java.util.List<String[]> lista = estanciaService.listarResumenEstancias();
+
+            for (String[] fila : lista) {
+                modeloTablaEstancias.addRow(fila);
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Error cargando estancias: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+
     private void guardarEstancia() {
+        if (!fechasValidas()) {
+            return;
+        }
+
         HuespedItem huespedSeleccionado = (HuespedItem) cbHuesped.getSelectedItem();
         HabitacionItem habitacionSeleccionada = (HabitacionItem) cbHabitacion.getSelectedItem();
 
-        String fechaEntrada = txtFechaEntrada.getText().trim();
-        String fechaSalida = txtFechaSalida.getText().trim();
+        String fechaEntrada = formatearFecha((Date) spFechaEntrada.getValue());
+        String fechaSalida = formatearFecha((Date) spFechaSalida.getValue());
 
         if (huespedSeleccionado == null) {
             JOptionPane.showMessageDialog(this, "Debes seleccionar un huésped.");
@@ -160,12 +247,13 @@ public class PanelEstancias extends JPanel {
             estancia.setEstado((String) cbEstado.getSelectedItem());
             estancia.setObservaciones(txtObservaciones.getText().trim());
 
-            int id = estanciaDAO.insertar(estancia, huespedSeleccionado.getId());
+            int id = estanciaService.guardarEstancia(estancia, huespedSeleccionado.getId());
 
             JOptionPane.showMessageDialog(this, "Estancia guardada correctamente. ID: " + id);
 
             limpiarFormulario();
             cargarCombos();
+            cargarTablaEstancias();
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
@@ -176,12 +264,101 @@ public class PanelEstancias extends JPanel {
         }
     }
 
+    private void buscarHabitacionesDisponibles() {
+
+        if (!fechasValidas()) {
+            return;
+        }
+
+        String fechaEntrada = formatearFecha((Date) spFechaEntrada.getValue());
+        String fechaSalida = formatearFecha((Date) spFechaSalida.getValue());
+
+        if (fechaEntrada.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debes introducir la fecha de entrada.");
+            return;
+        }
+
+        if (fechaSalida.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debes introducir la fecha de salida.");
+            return;
+        }
+
+        try {
+            cbHabitacion.removeAllItems();
+
+            List<Habitacion> habitaciones = estanciaService.buscarHabitacionesDisponibles(fechaEntrada, fechaSalida);
+
+            if (habitaciones.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No hay habitaciones disponibles para esas fechas.");
+                return;
+            }
+
+            for (Habitacion h : habitaciones) {
+                String texto = h.getNumero() + " - " + h.getTipo() + " (" + h.getCapacidad() + " pax)";
+                cbHabitacion.addItem(new HabitacionItem(h.getId(), texto));
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Error buscando habitaciones disponibles: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+
+    private void eliminarEstanciaSeleccionada() {
+        int fila = tablaEstancias.getSelectedRow();
+
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona una estancia en la tabla.");
+            return;
+        }
+
+        int idEstancia = Integer.parseInt(modeloTablaEstancias.getValueAt(fila, 0).toString());
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "¿Seguro que quieres eliminar la estancia con ID " + idEstancia + "?",
+                "Confirmar eliminación",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            boolean ok = estanciaService.eliminarEstancia(idEstancia);
+
+            if (ok) {
+                JOptionPane.showMessageDialog(this, "Estancia eliminada correctamente.");
+                cargarTablaEstancias();
+                cargarCombos();
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo eliminar la estancia.");
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Error eliminando estancia: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+
     private void limpiarFormulario() {
         cbHuesped.setSelectedIndex(-1);
         cbHabitacion.setSelectedIndex(-1);
-        txtFechaEntrada.setText("");
-        txtFechaSalida.setText("");
+        spFechaEntrada.setValue(new Date());
+        spFechaSalida.setValue(new Date());
         cbEstado.setSelectedIndex(0);
         txtObservaciones.setText("");
+    }
+
+    private String formatearFecha(Date fecha) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(fecha);
     }
 }
