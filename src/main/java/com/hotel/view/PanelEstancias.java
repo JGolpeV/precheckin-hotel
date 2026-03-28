@@ -1,6 +1,5 @@
 package com.hotel.view;
 
-import com.hotel.dao.EstanciaDAO;
 import com.hotel.dao.HabitacionDAO;
 import com.hotel.dao.HuespedDAO;
 import com.hotel.model.Estancia;
@@ -9,6 +8,7 @@ import com.hotel.model.HabitacionItem;
 import com.hotel.model.Huesped;
 import com.hotel.model.HuespedItem;
 import com.hotel.service.EstanciaService;
+import com.hotel.model.Huesped;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,16 +18,19 @@ import java.util.Date;
 
 public class PanelEstancias extends JPanel {
 
-    private JComboBox<HuespedItem> cbHuesped;
     private JComboBox<HabitacionItem> cbHabitacion;
     private JSpinner spFechaEntrada;
     private JSpinner spFechaSalida;
     private JComboBox<String> cbEstado;
     private JTextArea txtObservaciones;
+    private JLabel lblHuespedSeleccionado;
+    private Huesped huespedSeleccionado;
+
 
     private final HuespedDAO huespedDAO = new HuespedDAO();
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
     private final EstanciaService estanciaService = new EstanciaService();
+
 
     private JTable tablaEstancias;
     private javax.swing.table.DefaultTableModel modeloTablaEstancias;
@@ -43,7 +46,6 @@ public class PanelEstancias extends JPanel {
         gbc.insets = new Insets(6, 8, 6, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        cbHuesped = new JComboBox<>();
         cbHabitacion = new JComboBox<>();
 
         spFechaEntrada = new JSpinner(new SpinnerDateModel());
@@ -67,16 +69,23 @@ public class PanelEstancias extends JPanel {
 
         JButton btnBuscarHabitaciones = new JButton("Buscar habitaciones disponibles");
         JButton btnGuardar = new JButton("Guardar estancia");
-        JButton btnRecargar = new JButton("Recargar huéspedes");
         JButton btnEliminar = new JButton("Eliminar estancia");
+        JButton btnSeleccionarHuesped = new JButton("Seleccionar huésped");
+        lblHuespedSeleccionado = new JLabel("Ningún huésped seleccionado");
 
         int fila = 0;
 
         // Huésped
+
         gbc.gridx = 0; gbc.gridy = fila; gbc.weightx = 0;
         panelFormulario.add(new JLabel("Huésped:"), gbc);
+
         gbc.gridx = 1; gbc.gridy = fila; gbc.weightx = 1;
-        panelFormulario.add(cbHuesped, gbc);
+        panelFormulario.add(btnSeleccionarHuesped, gbc);
+
+        fila++;
+        gbc.gridx = 1; gbc.gridy = fila; gbc.weightx = 1;
+        panelFormulario.add(lblHuespedSeleccionado, gbc);
 
         // Fecha entrada
         fila++;
@@ -121,7 +130,6 @@ public class PanelEstancias extends JPanel {
 
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelBotones.add(btnGuardar);
-        panelBotones.add(btnRecargar);
         panelBotones.add(btnEliminar);
 
         JPanel panelSuperior = new JPanel(new BorderLayout());
@@ -144,9 +152,9 @@ public class PanelEstancias extends JPanel {
 
         // Eventos
         btnGuardar.addActionListener(e -> guardarEstancia());
-        btnRecargar.addActionListener(e -> cargarCombos());
         btnBuscarHabitaciones.addActionListener(e -> buscarHabitacionesDisponibles());
         btnEliminar.addActionListener(e -> eliminarEstanciaSeleccionada());
+        btnSeleccionarHuesped.addActionListener(e -> abrirSelectorHuesped());
 
         cargarCombos();
         cargarTablaEstancias();
@@ -169,24 +177,7 @@ public class PanelEstancias extends JPanel {
         }
 
     private void cargarCombos() {
-        try {
-            cbHuesped.removeAllItems();
-            cbHabitacion.removeAllItems();
-
-            List<Huesped> huespedes = huespedDAO.listarParaCombo();
-            for (Huesped h : huespedes) {
-                String nombreCompleto = h.getNombre() + " " + h.getApellido1()
-                        + (h.getApellido2() != null ? " " + h.getApellido2() : "");
-                cbHuesped.addItem(new HuespedItem(h.getId(), nombreCompleto));
-            }
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                    "Error cargando datos: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-        }
+        cbHabitacion.removeAllItems();
     }
 
     private void cargarTablaEstancias() {
@@ -213,7 +204,10 @@ public class PanelEstancias extends JPanel {
             return;
         }
 
-        HuespedItem huespedSeleccionado = (HuespedItem) cbHuesped.getSelectedItem();
+        if (huespedSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Debes seleccionar un huésped.");
+            return;
+        }
         HabitacionItem habitacionSeleccionada = (HabitacionItem) cbHabitacion.getSelectedItem();
 
         String fechaEntrada = formatearFecha((Date) spFechaEntrada.getValue());
@@ -349,16 +343,35 @@ public class PanelEstancias extends JPanel {
     }
 
     private void limpiarFormulario() {
-        cbHuesped.setSelectedIndex(-1);
         cbHabitacion.setSelectedIndex(-1);
         spFechaEntrada.setValue(new Date());
         spFechaSalida.setValue(new Date());
         cbEstado.setSelectedIndex(0);
         txtObservaciones.setText("");
+        huespedSeleccionado = null;
+        lblHuespedSeleccionado.setText("Ningún huésped seleccionado");
     }
 
     private String formatearFecha(Date fecha) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(fecha);
+    }
+
+    private void abrirSelectorHuesped() {
+        SeleccionHuespedDialog dialog = new SeleccionHuespedDialog(SwingUtilities.getWindowAncestor(this));
+        dialog.setVisible(true);
+
+        Huesped seleccionado = dialog.getHuespedSeleccionado();
+
+        if (seleccionado != null) {
+            huespedSeleccionado = seleccionado;
+
+            String texto = seleccionado.getNombre() + " " + seleccionado.getApellido1();
+            if (seleccionado.getApellido2() != null && !seleccionado.getApellido2().isBlank()) {
+                texto += " " + seleccionado.getApellido2();
+            }
+
+            lblHuespedSeleccionado.setText(texto);
+        }
     }
 }
