@@ -1,68 +1,179 @@
-# PreCheckIn Hotel
-
-Aplicación de escritorio desarrollada en Java para la gestión básica del proceso de pre-check-in hotelero.
+# PreCheck-in Hotel - Proyecto DAM
 
 ## Descripción del proyecto
 
-Este proyecto tiene como objetivo desarrollar una aplicación de escritorio orientada a la gestión previa al check-in de huéspedes en un hotel.
+Este proyecto consiste en el desarrollo de una aplicación de escritorio en Java para la gestión del pre check-in de huéspedes en un hotel.
 
-La idea surge a partir de una necesidad observada en el entorno hotelero: disponer de una herramienta sencilla que permita organizar de forma estructurada la información de huéspedes, habitaciones y estancias antes de la llegada de los clientes.
+El objetivo principal es permitir registrar, gestionar y organizar la información de los clientes antes de su llegada, facilitando posteriormente el cumplimiento de los requisitos legales de comunicación a las autoridades.
 
-La aplicación no pretende sustituir a un PMS completo, sino ofrecer una solución ligera centrada en una parte concreta del proceso operativo de recepción.
+La aplicación está desarrollada con:
 
-## Tecnologías utilizadas
-
-* Java
-* Swing
+* Java (Swing)
 * SQLite
-* Maven
-* IntelliJ IDEA
+* Arquitectura basada en DAO + Service + View
 
-## Funcionalidades implementadas en esta primera versión
+---
 
-### Gestión de huéspedes
+## Estado actual del proyecto (Entrega 85%)
 
-* Alta de huéspedes
-* Consulta de huéspedes en tabla
-* Modificación de huéspedes
-* Eliminación de huéspedes
+En esta versión el sistema es funcional y completo a nivel de gestión interna, permitiendo trabajar de forma realista con huéspedes, habitaciones y estancias.
 
-### Gestión de habitaciones
+---
 
-* Alta de habitaciones
-* Consulta de habitaciones en tabla
-* Modificación de habitaciones
-* Eliminación de habitaciones
-* Selección de tipo de habitación mediante desplegable:
+## Arquitectura
 
-    * Individual
-    * Doble
-    * Triple
-* Asignación automática de capacidad según tipo de habitación
+El proyecto sigue una estructura por capas:
 
-### Gestión de estancias
+* model → Entidades del sistema (Huesped, Estancia, Habitacion, etc.)
+* dao → Acceso a base de datos (SQLite)
+* service → Lógica de negocio
+* view → Interfaz gráfica (Swing)
 
-* Creación de estancias
-* Asociación de huésped y habitación
-* Registro de fecha de entrada y fecha de salida
-* Cambio automático del estado de la habitación a ocupada al registrar una estancia
+Esta separación permite una mejor organización del código y facilita futuras ampliaciones.
 
-### Interfaz gráfica
+---
 
-* Navegación mediante pestañas:
+## Gestión de Huéspedes
 
-    * Huéspedes
-    * Habitaciones
-    * Estancias
+Funcionalidades implementadas:
 
-## Mejoras previstas para siguientes entregas
+* Crear huésped
+* Modificar huésped
+* Eliminar huésped
+* Listado de huéspedes
+* Búsqueda en tiempo real
 
-* Gestión real de disponibilidad de habitaciones en función de fechas
-* Inclusión de todos los datos necesarios para el registro policial de viajeros
-* Gestión de varios huéspedes dentro de una misma estancia
-* Exportación de datos a archivo XML para enviar a la policia
-* Sistema de usuarios con roles:
-    * Administrador
-    * Recepción
+### Datos gestionados
 
+* Nombre y apellidos
+* Nacionalidad
+* Fecha y lugar de nacimiento
+* Dirección
+* Código postal
+* País de residencia
+* Teléfono y email
+* Sexo
+
+### Documento de identidad
+
+Cada huésped puede tener asociado:
+
+* Tipo de documento (NIF, NIE, Pasaporte)
+* Número de documento
+* Número de soporte
+* Fecha de caducidad
+
+### Validaciones
+
+* Campos obligatorios (nombre, apellido)
+* Coherencia del documento:
+
+  * Tipo ↔ número
+  * Número ↔ soporte
+* Documento obligatorio para adultos
+
+---
+
+## Gestión de Habitaciones
+
+* Crear habitación
+* Modificar habitación
+* Eliminar habitación
+* Listado de habitaciones
+
+### Características
+
+* Tipos de habitación:
+
+  * Individual (1)
+  * Doble (2)
+  * Triple (3)
+* Capacidad automática según tipo
+
+---
+
+## Gestión de Estancias
+
+Funcionalidades principales:
+
+* Crear estancia
+* Modificar estancia
+* Eliminar estancia
+* Listado de estancias
+
+### Características
+
+* Selección de huésped mediante buscador (no combo)
+* Soporte para múltiples huéspedes:
+
+  * 1 titular
+  * varios acompañantes
+* Validación de fechas:
+
+  * entrada < salida
+* Validación de capacidad de habitación
+* Asignación de habitaciones según disponibilidad real
+
+---
+
+## Lógica de negocio implementada
+
+* Disponibilidad de habitaciones por rango de fechas (no por estado fijo)
+* Validación de ocupación según capacidad
+* Gestión de múltiples huéspedes por estancia
+* Uso de transacciones en operaciones críticas
+
+---
+
+## Base de datos
+
+Base de datos SQLite con las siguientes tablas principales:
+
+* huesped
+* habitacion
+* estancia
+* estancia_huesped
+* documento_identidad
+
+El modelo permite representar correctamente relaciones reales de hotel.
+
+---
+
+## Interfaz
+
+* Interfaz desarrollada en Java Swing
+* Organización por pestañas:
+
+  * Huéspedes
+  * Habitaciones
+  * Estancias
+* Formularios funcionales orientados al flujo real de recepción
+
+---
+
+## Limitaciones actuales
+
+* Interfaz mejorable a nivel visual
+* Parte de la lógica todavía se encuentra en la capa view
+* No hay sistema de autenticación de usuarios
+* No se genera aún el XML oficial de comunicación
+
+---
+
+## Trabajo previsto para la entrega final (100%)
+
+* Implementación de login básico (admin / recepción)
+* Generación de XML conforme a normativa policial
+* Mejora de la arquitectura (mayor uso de servicios)
+* Limpieza de la interfaz gráfica
+* Mejora de la experiencia de usuario
+* Ocultación de IDs en tablas
+
+---
+
+## Conclusión
+
+El proyecto se encuentra en un estado funcional sólido, con una base técnica bien estructurada y preparado para la incorporación de funcionalidades avanzadas en la entrega final.
+
+---
 

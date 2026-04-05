@@ -39,5 +39,21 @@ public class EstanciaService {
         return estanciaDAO.listarResumen();
     }
 
-    
+    public int guardarEstanciaConHuespedes(Estancia estancia, int huespedTitularId, java.util.List<Integer> acompanantesIds) throws SQLException {
+        return estanciaDAO.insertarConHuespedes(estancia, huespedTitularId, acompanantesIds);
+    }
+
+    public com.hotel.model.EstanciaDetalle obtenerDetalleEstancia(int estanciaId) throws SQLException {
+        return estanciaDAO.obtenerDetallePorId(estanciaId);
+    }
+
+    public boolean actualizarEstanciaConHuespedes(com.hotel.model.Estancia estancia,
+                                                  int huespedTitularId,
+                                                  java.util.List<Integer> acompanantesIds) throws SQLException {
+        return estanciaDAO.actualizarConHuespedes(estancia, huespedTitularId, acompanantesIds);
+    }
+
+    public List<Habitacion> buscarHabitacionesDisponiblesExcluyendoEstancia(String fechaEntrada, String fechaSalida, int estanciaIdExcluir) throws SQLException {
+        return habitacionDAO.listarDisponiblesExcluyendoEstancia(fechaEntrada, fechaSalida, estanciaIdExcluir);
+    }
 }

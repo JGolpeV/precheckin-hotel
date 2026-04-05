@@ -1,6 +1,7 @@
 package com.hotel.view;
 
 import com.hotel.dao.HuespedDAO;
+import com.hotel.model.DocumentoIdentidad;
 import com.hotel.model.Huesped;
 import com.hotel.service.HuespedService;
 
@@ -18,7 +19,20 @@ public class PanelHuespedes extends JPanel {
     private JTextField txtNombre;
     private JTextField txtApellido1;
     private JTextField txtApellido2;
+    private JComboBox<String> cbSexo;
     private JTextField txtNacionalidad;
+    private JTextField txtDireccion;
+    private JTextField txtCodigoPostal;
+    private JTextField txtPaisResidencia;
+    private JTextField txtFechaNacimiento;
+    private JTextField txtLugarNacimiento;
+    private JTextField txtTelefono;
+    private JTextField txtEmail;
+
+    private JComboBox<String> cbTipoDocumento;
+    private JTextField txtNumeroDocumento;
+    private JTextField txtSoporteDocumento;
+    private JTextField txtFechaCaducidad;
 
     private Integer idSeleccionado = null;
 
@@ -48,31 +62,196 @@ public class PanelHuespedes extends JPanel {
         txtNombre = new JTextField(20);
         txtApellido1 = new JTextField(20);
         txtApellido2 = new JTextField(20);
+        cbSexo = new JComboBox<>(new String[]{"F", "M", "Otro", "n/c"});
         txtNacionalidad = new JTextField(20);
+        txtDireccion = new JTextField(20);
+        txtCodigoPostal = new JTextField(20);
+        txtPaisResidencia = new JTextField(20);
+        txtFechaNacimiento = new JTextField(20);
+        txtLugarNacimiento = new JTextField(20);
+        txtTelefono = new JTextField(20);
+        txtEmail = new JTextField(20);
+        cbTipoDocumento = new JComboBox<>(new String[]{"", "NIF", "NIE", "PASAPORTE"});
+        txtNumeroDocumento = new JTextField(20);
+        txtSoporteDocumento = new JTextField(20);
+        txtFechaCaducidad = new JTextField(20);
 
-        // Fila 0
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
+        int fila = 0;
+
+        // Nombre
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
         panelFormulario.add(new JLabel("Nombre:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1;
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
         panelFormulario.add(txtNombre, gbc);
 
-        // Fila 1
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
+        // Apellido 1
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
         panelFormulario.add(new JLabel("Apellido 1:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 1;
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
         panelFormulario.add(txtApellido1, gbc);
 
-        // Fila 2
-        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
+        // Apellido 2
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
         panelFormulario.add(new JLabel("Apellido 2:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 2; gbc.weightx = 1;
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
         panelFormulario.add(txtApellido2, gbc);
 
-        // Fila 3
-        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
+        // Sexo
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Sexo:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(cbSexo, gbc);
+
+        // Nacionalidad
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
         panelFormulario.add(new JLabel("Nacionalidad:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 3; gbc.weightx = 1;
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
         panelFormulario.add(txtNacionalidad, gbc);
+
+        // Fecha nacimiento
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Fecha nacimiento (YYYY-MM-DD):"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(txtFechaNacimiento, gbc);
+
+        // Lugar nacimiento
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Lugar nacimiento:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(txtLugarNacimiento, gbc);
+
+        // Dirección
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Dirección:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(txtDireccion, gbc);
+
+        // Código postal
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Código postal:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(txtCodigoPostal, gbc);
+
+        // País residencia
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("País residencia:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(txtPaisResidencia, gbc);
+
+        // Teléfono
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Teléfono:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(txtTelefono, gbc);
+
+        // Email
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Email:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(txtEmail, gbc);
+
+        // Tipo documento
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Tipo documento:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(cbTipoDocumento, gbc);
+
+        // Número documento
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Número documento:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(txtNumeroDocumento, gbc);
+
+        // Soporte documento
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Soporte documento:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(txtSoporteDocumento, gbc);
+
+        // Fecha de caducidad documento
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panelFormulario.add(new JLabel("Fecha caducidad (YYYY-MM-DD):"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = fila++;
+        gbc.weightx = 1;
+        panelFormulario.add(txtFechaCaducidad, gbc);
 
         panelSuperior.add(panelFormulario, BorderLayout.CENTER);
         panelSuperior.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
@@ -158,7 +337,22 @@ public class PanelHuespedes extends JPanel {
             huesped.setNombre(txtNombre.getText().trim());
             huesped.setApellido1(txtApellido1.getText().trim());
             huesped.setApellido2(txtApellido2.getText().trim());
+            huesped.setSexo((String) cbSexo.getSelectedItem());
             huesped.setNacionalidad(txtNacionalidad.getText().trim());
+            huesped.setFechaNacimiento(txtFechaNacimiento.getText().trim());
+            huesped.setLugarNacimiento(txtLugarNacimiento.getText().trim());
+            huesped.setDireccion(txtDireccion.getText().trim());
+            huesped.setCodigoPostal(txtCodigoPostal.getText().trim());
+            huesped.setPaisResidencia(txtPaisResidencia.getText().trim());
+            huesped.setTelefono(txtTelefono.getText().trim());
+            huesped.setEmail(txtEmail.getText().trim());
+
+            DocumentoIdentidad documento = new DocumentoIdentidad();
+
+            documento.setTipoDocumento((String) cbTipoDocumento.getSelectedItem());
+            documento.setNumeroDocumento(txtNumeroDocumento.getText().trim());
+            documento.setSoporteDocumento(txtSoporteDocumento.getText().trim());
+            documento.setFechaCaducidad(txtFechaCaducidad.getText().trim());
 
             String errorValidacion = huespedService.validarHuesped(huesped);
             if (errorValidacion != null) {
@@ -166,7 +360,13 @@ public class PanelHuespedes extends JPanel {
                 return;
             }
 
-            huespedService.guardarHuesped(huesped);
+            String errorDocumento = huespedService.validarDocumento(huesped, documento);
+            if (errorDocumento != null) {
+                JOptionPane.showMessageDialog(this, errorDocumento);
+                return;
+            }
+
+            huespedService.guardarHuespedConDocumento(huesped, documento);
 
             JOptionPane.showMessageDialog(this, "Huésped guardado correctamente");
 
@@ -205,9 +405,21 @@ public class PanelHuespedes extends JPanel {
         txtNombre.setText("");
         txtApellido1.setText("");
         txtApellido2.setText("");
+        cbSexo.setSelectedIndex(0);
         txtNacionalidad.setText("");
         idSeleccionado = null;
         tabla.clearSelection();
+        txtFechaNacimiento.setText("");
+        txtLugarNacimiento.setText("");
+        txtDireccion.setText("");
+        txtCodigoPostal.setText("");
+        txtPaisResidencia.setText("");
+        txtTelefono.setText("");
+        txtEmail.setText("");
+        cbTipoDocumento.setSelectedIndex(0);
+        txtNumeroDocumento.setText("");
+        txtSoporteDocumento.setText("");
+        txtFechaCaducidad.setText("");
     }
 
     private void eliminarSeleccionado() {
@@ -253,12 +465,47 @@ public class PanelHuespedes extends JPanel {
             return;
         }
 
-        idSeleccionado = (Integer) modeloTabla.getValueAt(fila, 0);
+        int filaModelo = tabla.convertRowIndexToModel(fila);
+        idSeleccionado = (Integer) modeloTabla.getValueAt(filaModelo, 0);
 
-        txtNombre.setText((String) modeloTabla.getValueAt(fila, 1));
-        txtApellido1.setText((String) modeloTabla.getValueAt(fila, 2));
-        txtApellido2.setText((String) modeloTabla.getValueAt(fila, 3));
-        txtNacionalidad.setText((String) modeloTabla.getValueAt(fila, 4));
+        try {
+            Huesped h = huespedService.buscarPorId(idSeleccionado);
+
+            if (h == null) {
+                JOptionPane.showMessageDialog(this, "No se encontró el huésped.");
+                return;
+            }
+
+            txtNombre.setText(h.getNombre() != null ? h.getNombre() : "");
+            txtApellido1.setText(h.getApellido1() != null ? h.getApellido1() : "");
+            txtApellido2.setText(h.getApellido2() != null ? h.getApellido2() : "");
+            cbSexo.setSelectedItem(h.getSexo() != null ? h.getSexo() : "");
+            txtNacionalidad.setText(h.getNacionalidad() != null ? h.getNacionalidad() : "");
+            txtFechaNacimiento.setText(h.getFechaNacimiento() != null ? h.getFechaNacimiento() : "");
+            txtLugarNacimiento.setText(h.getLugarNacimiento() != null ? h.getLugarNacimiento() : "");
+            txtDireccion.setText(h.getDireccion() != null ? h.getDireccion() : "");
+            txtCodigoPostal.setText(h.getCodigoPostal() != null ? h.getCodigoPostal() : "");
+            txtPaisResidencia.setText(h.getPaisResidencia() != null ? h.getPaisResidencia() : "");
+            txtTelefono.setText(h.getTelefono() != null ? h.getTelefono() : "");
+            txtEmail.setText(h.getEmail() != null ? h.getEmail() : "");
+
+            DocumentoIdentidad doc = huespedService.buscarDocumentoPorHuespedId(idSeleccionado);
+
+            if (doc != null) {
+                cbTipoDocumento.setSelectedItem(doc.getTipoDocumento() != null ? doc.getTipoDocumento() : "");
+                txtNumeroDocumento.setText(doc.getNumeroDocumento() != null ? doc.getNumeroDocumento() : "");
+                txtSoporteDocumento.setText(doc.getSoporteDocumento() != null ? doc.getSoporteDocumento() : "");
+                txtFechaCaducidad.setText(doc.getFechaCaducidad() != null ? doc.getFechaCaducidad() : "");
+            } else {
+                cbTipoDocumento.setSelectedIndex(0);
+                txtNumeroDocumento.setText("");
+                txtSoporteDocumento.setText("");
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error cargando huésped: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void actualizarHuesped() {
@@ -273,7 +520,20 @@ public class PanelHuespedes extends JPanel {
             h.setNombre(txtNombre.getText().trim());
             h.setApellido1(txtApellido1.getText().trim());
             h.setApellido2(txtApellido2.getText().trim());
+            h.setSexo((String) cbSexo.getSelectedItem());
             h.setNacionalidad(txtNacionalidad.getText().trim());
+            h.setFechaNacimiento(txtFechaNacimiento.getText().trim());
+            h.setLugarNacimiento(txtLugarNacimiento.getText().trim());
+            h.setDireccion(txtDireccion.getText().trim());
+            h.setCodigoPostal(txtCodigoPostal.getText().trim());
+            h.setPaisResidencia(txtPaisResidencia.getText().trim());
+            h.setTelefono(txtTelefono.getText().trim());
+            h.setEmail(txtEmail.getText().trim());
+
+            DocumentoIdentidad documento = new DocumentoIdentidad();
+            documento.setTipoDocumento((String) cbTipoDocumento.getSelectedItem());
+            documento.setNumeroDocumento(txtNumeroDocumento.getText().trim());
+            documento.setSoporteDocumento(txtSoporteDocumento.getText().trim());
 
             String errorValidacion = huespedService.validarHuesped(h);
             if (errorValidacion != null) {
@@ -281,7 +541,13 @@ public class PanelHuespedes extends JPanel {
                 return;
             }
 
-            boolean ok = huespedService.actualizarHuesped(h);
+            String errorDocumento = huespedService.validarDocumento(h, documento);
+            if (errorDocumento != null) {
+                JOptionPane.showMessageDialog(this, errorDocumento);
+                return;
+            }
+
+            boolean ok = huespedService.actualizarHuespedConDocumento(h, documento);
 
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Huésped actualizado correctamente.");

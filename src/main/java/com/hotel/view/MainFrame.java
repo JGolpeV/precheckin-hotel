@@ -10,6 +10,7 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 600);
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Huéspedes", new PanelHuespedes());

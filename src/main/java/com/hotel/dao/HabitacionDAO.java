@@ -125,6 +125,45 @@ public class HabitacionDAO {
         return lista;
     }
 
+    public List<Habitacion> listarDisponiblesExcluyendoEstancia(String fechaEntrada, String fechaSalida, int estanciaIdExcluir) throws SQLException {
+        String sql = """
+            SELECT h.id, h.numero, h.tipo, h.capacidad, h.estado
+            FROM habitacion h
+            WHERE h.id NOT IN (
+                SELECT e.habitacion_id
+                FROM estancia e
+                WHERE e.id <> ?
+                  AND e.fecha_entrada < ?
+                  AND e.fecha_salida > ?
+            )
+            ORDER BY h.numero
+            """;
+
+        List<Habitacion> lista = new ArrayList<>();
+
+        try (Connection conn = ConexionSQLite.conectar();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, estanciaIdExcluir);
+            ps.setString(2, fechaSalida);
+            ps.setString(3, fechaEntrada);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Habitacion h = new Habitacion();
+                    h.setId(rs.getInt("id"));
+                    h.setNumero(rs.getString("numero"));
+                    h.setTipo(rs.getString("tipo"));
+                    h.setCapacidad(rs.getInt("capacidad"));
+                    h.setEstado(rs.getString("estado"));
+                    lista.add(h);
+                }
+            }
+        }
+
+        return lista;
+    }
+
     // Pendiente borrar este metodo ya que ahora no se listan por estado si no por fecha
     public List<Habitacion> listarLibres() throws SQLException {
         String sql = """

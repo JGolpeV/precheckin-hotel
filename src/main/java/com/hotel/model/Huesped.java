@@ -6,6 +6,7 @@ public class Huesped {
     private String nombre;
     private String apellido1;
     private String apellido2;
+    private String sexo;
 
     private String direccion;
     private String codigoPostal;
@@ -20,6 +21,10 @@ public class Huesped {
 
     private String fechaNacimiento;  // YYYY-MM-DD
     private String lugarNacimiento;
+    private String telefono;
+    private String email;
+
+
 
     public Huesped() {}
 
@@ -58,6 +63,9 @@ public class Huesped {
     public void setApellido2(String apellido2) {
         this.apellido2 = apellido2;
     }
+
+    public String getSexo() { return sexo; }
+    public void setSexo(String sexo) { this.sexo = sexo; }
 
     public String getDireccion() {
         return direccion;
@@ -139,8 +147,28 @@ public class Huesped {
         this.lugarNacimiento = lugarNacimiento;
     }
 
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     @Override
     public String toString() {
-        return "Huesped{id=" + id + ", nombre='" + nombre + "', apellido1='" + apellido1 + "', apellido2='" + apellido2 + "'}";
+        String texto = nombre + " " + apellido1;
+        if (apellido2 != null && !apellido2.isBlank()) {
+            texto += " " + apellido2;
+        }
+        return texto;
     }
 }
