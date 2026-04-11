@@ -460,4 +460,36 @@ public class EstanciaDAO {
         }
     }
 
+    public java.util.List<Estancia> listarPorFechaEntrada(String fechaEntrada) throws SQLException {
+        String sql = """
+            SELECT id, fecha_entrada, fecha_salida, habitacion_id, estado, observaciones
+            FROM estancia
+            WHERE fecha_entrada = ?
+            ORDER BY id
+            """;
+
+        java.util.List<Estancia> lista = new java.util.ArrayList<>();
+
+        try (Connection conn = ConexionSQLite.conectar();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, fechaEntrada);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Estancia e = new Estancia();
+                    e.setId(rs.getInt("id"));
+                    e.setFechaEntrada(rs.getString("fecha_entrada"));
+                    e.setFechaSalida(rs.getString("fecha_salida"));
+                    e.setHabitacionId(rs.getInt("habitacion_id"));
+                    e.setEstado(rs.getString("estado"));
+                    e.setObservaciones(rs.getString("observaciones"));
+                    lista.add(e);
+                }
+            }
+        }
+
+        return lista;
+    }
+
 }

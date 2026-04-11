@@ -5,6 +5,7 @@ import com.hotel.model.Habitacion;
 import com.hotel.model.HabitacionItem;
 import com.hotel.model.Huesped;
 import com.hotel.service.EstanciaService;
+import com.hotel.service.XMLService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,6 +28,8 @@ public class PanelEstancias extends JPanel {
     private Integer idEstanciaSeleccionada = null;
     private JTable tablaEstancias;
     private javax.swing.table.DefaultTableModel modeloTablaEstancias;
+    private JTextField txtFechaXML;
+    private JButton btnExportarXML;
 
     public PanelEstancias() {
         setLayout(new BorderLayout(10, 10));
@@ -65,6 +68,9 @@ public class PanelEstancias extends JPanel {
         JScrollPane scrollAcompanantes = new JScrollPane(listaAcompanantes);
         scrollAcompanantes.setPreferredSize(new Dimension(250, 80));
 
+        txtFechaXML = new JTextField(10);
+        btnExportarXML = new JButton("Exportar XML");
+
         JButton btnSeleccionarHuesped = new JButton("Seleccionar huésped");
         JButton btnAgregarAcompanante = new JButton("Añadir acompañante");
         JButton btnEliminarAcompanante = new JButton("Quitar acompañante");
@@ -74,6 +80,7 @@ public class PanelEstancias extends JPanel {
         JButton btnEliminar = new JButton("Eliminar estancia");
         JButton btnCargarEstancia = new JButton("Cargar estancia");
         JButton btnActualizarEstancia = new JButton("Actualizar estancia");
+
 
 
         // PANEL FORMULARIO
@@ -227,6 +234,15 @@ public class PanelEstancias extends JPanel {
 
         gbc.gridwidth = 1;
 
+        //EXPORTADOR
+        JPanel panelXML = new JPanel();
+
+        panelXML.add(new JLabel("Fecha (YYYY-MM-DD):"));
+        panelXML.add(txtFechaXML);
+        panelXML.add(btnExportarXML);
+
+        add(panelXML, BorderLayout.SOUTH);
+
         // TABLA
         modeloTablaEstancias = new javax.swing.table.DefaultTableModel(
                 new Object[]{"ID", "Huésped", "Habitación", "Fecha entrada", "Fecha salida", "Estado"}, 0
@@ -268,6 +284,7 @@ public class PanelEstancias extends JPanel {
         btnLimpiar.addActionListener(e -> limpiarFormulario());
         btnCargarEstancia.addActionListener(e -> cargarEstanciaSeleccionada());
         btnActualizarEstancia.addActionListener(e -> actualizarEstancia());
+        btnExportarXML.addActionListener(e -> exportarXML());
 
         // CARGA INICIAL
         cargarCombos();
@@ -706,5 +723,43 @@ public class PanelEstancias extends JPanel {
         huespedSeleccionado = null;
         lblHuespedSeleccionado.setText("Ningún huésped seleccionado");
         modeloAcompanantes.clear();
+    }
+
+    private void exportarXML() {
+        String fecha = txtFechaXML.getText().trim();
+
+        if (fecha.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Introduce una fecha.");
+            return;
+        }
+
+        try {
+            XMLService xmlService = new XMLService();
+
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Guardar XML");
+
+            fileChooser.setSelectedFile(new java.io.File("PV_" + fecha.replace("-", "_") + ".xml"));
+
+            int seleccion = fileChooser.showSaveDialog(this);
+
+            if (seleccion == JFileChooser.APPROVE_OPTION) {
+                java.nio.file.Path ruta = fileChooser.getSelectedFile().toPath();
+
+                if (!ruta.toString().endsWith(".xml")) {
+                    ruta = java.nio.file.Path.of(ruta.toString() + ".xml");
+                }
+
+                xmlService.guardarXMLPVPorFecha(fecha, "480354", ruta);
+
+                JOptionPane.showMessageDialog(this, "XML generado correctamente.");
+            }
+
+
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error generando XML: " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 }

@@ -14,7 +14,7 @@ public class DocumentoIdentidadDAO {
     public void insertar(DocumentoIdentidad doc) throws SQLException {
         String sql = """
             INSERT INTO documento_identidad (huesped_id, tipo_documento, numero_documento, numero_soporte, fecha_caducidad)
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
         """;
 
         try (Connection conn = ConexionSQLite.conectar();
