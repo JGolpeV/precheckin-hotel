@@ -1,14 +1,14 @@
 package com.hotel;
 
-import com.hotel.view.MainFrame;
+import com.hotel.view.LoginFrame;
 
 import javax.swing.*;
 
 public class App {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            MainFrame frame = new MainFrame();
-            frame.setVisible(true);
+            LoginFrame loginFrame = new LoginFrame();
+            loginFrame.setVisible(true);
         });
     }
 }

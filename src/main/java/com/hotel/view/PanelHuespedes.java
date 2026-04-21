@@ -1,18 +1,17 @@
 package com.hotel.view;
 
-import com.hotel.dao.HuespedDAO;
 import com.hotel.model.DocumentoIdentidad;
 import com.hotel.model.Huesped;
 import com.hotel.service.HuespedService;
 
 import javax.swing.*;
+import javax.swing.RowFilter;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.List;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.RowFilter;
 
 public class PanelHuespedes extends JPanel {
 
@@ -21,294 +20,186 @@ public class PanelHuespedes extends JPanel {
     private JTextField txtApellido2;
     private JComboBox<String> cbSexo;
     private JTextField txtNacionalidad;
-    private JTextField txtDireccion;
-    private JTextField txtCodigoPostal;
-    private JTextField txtPaisResidencia;
     private JTextField txtFechaNacimiento;
-    private JTextField txtLugarNacimiento;
     private JTextField txtTelefono;
     private JTextField txtEmail;
+
+    private JTextField txtDireccion;
+    private JTextField txtMunicipio;
+    private JTextField txtCodigoPostal;
+    private JTextField txtPaisResidencia;
 
     private JComboBox<String> cbTipoDocumento;
     private JTextField txtNumeroDocumento;
     private JTextField txtSoporteDocumento;
     private JTextField txtFechaCaducidad;
 
-    private Integer idSeleccionado = null;
+    private JTextField txtBuscar;
 
     private JTable tabla;
     private DefaultTableModel modeloTabla;
-
-    private JTextField txtBuscar;
     private TableRowSorter<DefaultTableModel> sorter;
 
-    private HuespedService huespedService = new HuespedService();
+    private Integer idSeleccionado = null;
+
+    private final HuespedService huespedService = new HuespedService();
 
     public PanelHuespedes() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Panel contenedor arriba (formulario + botones)
+        inicializarComponentes();
+
+        JPanel panelDatosPersonales = crearPanelDatosPersonales();
+        JPanel panelDireccion = crearPanelDireccion();
+        JPanel panelDocumento = crearPanelDocumento();
+
+        JPanel panelFormulario = new JPanel(new GridLayout(1, 3, 10, 10));
+        panelFormulario.add(panelDatosPersonales);
+        panelFormulario.add(panelDireccion);
+        panelFormulario.add(panelDocumento);
+
+        JPanel panelBotones = crearPanelBotones();
+        JPanel panelBusqueda = crearPanelBusqueda();
+
         JPanel panelSuperior = new JPanel(new BorderLayout(10, 10));
+        panelSuperior.add(panelFormulario, BorderLayout.NORTH);
+        panelSuperior.add(panelBotones, BorderLayout.CENTER);
+        panelSuperior.add(panelBusqueda, BorderLayout.SOUTH);
 
-        // Formulario
-        JPanel panelFormulario = new JPanel(new GridBagLayout());
-        panelFormulario.setBorder(BorderFactory.createTitledBorder("Datos del huésped"));
+        add(panelSuperior, BorderLayout.NORTH);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(6, 8, 6, 8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        crearTabla();
+        add(new JScrollPane(tabla), BorderLayout.CENTER);
 
+        cargarTabla();
+        configurarFiltroBusqueda();
+    }
+
+    private void inicializarComponentes() {
         txtNombre = new JTextField(20);
         txtApellido1 = new JTextField(20);
         txtApellido2 = new JTextField(20);
-        cbSexo = new JComboBox<>(new String[]{"F", "M", "Otro", "n/c"});
+        cbSexo = new JComboBox<>(new String[]{"", "M", "F"});
         txtNacionalidad = new JTextField(20);
-        txtDireccion = new JTextField(20);
-        txtCodigoPostal = new JTextField(20);
-        txtPaisResidencia = new JTextField(20);
         txtFechaNacimiento = new JTextField(20);
-        txtLugarNacimiento = new JTextField(20);
         txtTelefono = new JTextField(20);
         txtEmail = new JTextField(20);
+
+        txtDireccion = new JTextField(20);
+        txtMunicipio = new JTextField(20);
+        txtCodigoPostal = new JTextField(20);
+        txtPaisResidencia = new JTextField(20);
+
         cbTipoDocumento = new JComboBox<>(new String[]{"", "NIF", "NIE", "PASAPORTE"});
         txtNumeroDocumento = new JTextField(20);
         txtSoporteDocumento = new JTextField(20);
         txtFechaCaducidad = new JTextField(20);
 
+        txtBuscar = new JTextField(20);
+    }
+
+    private JPanel crearPanelDatosPersonales() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Datos personales"));
+
+        GridBagConstraints gbc = crearGbc();
+
         int fila = 0;
 
-        // Nombre
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Nombre:"), gbc);
+        addCampo(panel, gbc, fila++, "Nombre:", txtNombre);
+        addCampo(panel, gbc, fila++, "Apellido 1:", txtApellido1);
+        addCampo(panel, gbc, fila++, "Apellido 2:", txtApellido2);
+        addCampo(panel, gbc, fila++, "Sexo:", cbSexo);
+        addCampo(panel, gbc, fila++, "Nacionalidad:", txtNacionalidad);
+        addCampo(panel, gbc, fila++, "Fecha nacimiento (YYYY-MM-DD):", txtFechaNacimiento);
+        addCampo(panel, gbc, fila++, "Teléfono:", txtTelefono);
+        addCampo(panel, gbc, fila++, "Email:", txtEmail);
 
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtNombre, gbc);
+        return panel;
+    }
 
-        // Apellido 1
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Apellido 1:"), gbc);
+    private JPanel crearPanelDireccion() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Dirección"));
 
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtApellido1, gbc);
+        GridBagConstraints gbc = crearGbc();
 
-        // Apellido 2
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Apellido 2:"), gbc);
+        int fila = 0;
 
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtApellido2, gbc);
+        addCampo(panel, gbc, fila++, "Dirección:", txtDireccion);
+        addCampo(panel, gbc, fila++, "Municipio:", txtMunicipio);
+        addCampo(panel, gbc, fila++, "Código postal:", txtCodigoPostal);
+        addCampo(panel, gbc, fila++, "País residencia:", txtPaisResidencia);
 
-        // Sexo
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Sexo:"), gbc);
+        return panel;
+    }
 
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(cbSexo, gbc);
+    private JPanel crearPanelDocumento() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Documento de identidad"));
 
-        // Nacionalidad
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Nacionalidad:"), gbc);
+        GridBagConstraints gbc = crearGbc();
 
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtNacionalidad, gbc);
+        int fila = 0;
 
-        // Fecha nacimiento
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Fecha nacimiento (YYYY-MM-DD):"), gbc);
+        addCampo(panel, gbc, fila++, "Tipo documento:", cbTipoDocumento);
+        addCampo(panel, gbc, fila++, "Número documento:", txtNumeroDocumento);
+        addCampo(panel, gbc, fila++, "Soporte documento:", txtSoporteDocumento);
+        addCampo(panel, gbc, fila++, "Fecha caducidad (YYYY-MM-DD):", txtFechaCaducidad);
 
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtFechaNacimiento, gbc);
+        return panel;
+    }
 
-        // Lugar nacimiento
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Lugar nacimiento:"), gbc);
+    private JPanel crearPanelBotones() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtLugarNacimiento, gbc);
-
-        // Dirección
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Dirección:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtDireccion, gbc);
-
-        // Código postal
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Código postal:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtCodigoPostal, gbc);
-
-        // País residencia
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("País residencia:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtPaisResidencia, gbc);
-
-        // Teléfono
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Teléfono:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtTelefono, gbc);
-
-        // Email
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Email:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtEmail, gbc);
-
-        // Tipo documento
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Tipo documento:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(cbTipoDocumento, gbc);
-
-        // Número documento
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Número documento:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtNumeroDocumento, gbc);
-
-        // Soporte documento
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Soporte documento:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtSoporteDocumento, gbc);
-
-        // Fecha de caducidad documento
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Fecha caducidad (YYYY-MM-DD):"), gbc);
-        gbc.gridx = 1;
-        gbc.gridy = fila++;
-        gbc.weightx = 1;
-        panelFormulario.add(txtFechaCaducidad, gbc);
-
-        panelSuperior.add(panelFormulario, BorderLayout.CENTER);
-        panelSuperior.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-
-        // Botones
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         JButton btnGuardar = new JButton("Guardar");
-        JButton btnCargar = new JButton("Cargar seleccionado");
+        JButton btnCargarSeleccionado = new JButton("Cargar seleccionado");
         JButton btnActualizar = new JButton("Actualizar");
         JButton btnEliminar = new JButton("Eliminar");
 
-        panelBotones.add(btnGuardar);
-        panelBotones.add(btnCargar);
-        panelBotones.add(btnActualizar);
-        panelBotones.add(btnEliminar);
+        btnGuardar.addActionListener(e -> guardarHuesped());
+        btnCargarSeleccionado.addActionListener(e -> cargarSeleccionadoEnFormulario());
+        btnActualizar.addActionListener(e -> actualizarHuesped());
+        btnEliminar.addActionListener(e -> eliminarSeleccionado());
 
-        panelSuperior.add(panelBotones, BorderLayout.SOUTH);
+        panel.add(btnGuardar);
+        panel.add(btnCargarSeleccionado);
+        panel.add(btnActualizar);
+        panel.add(btnEliminar);
 
-        //Buscador huesped
-        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panelBusqueda.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder("Búsqueda"),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
+        return panel;
+    }
 
-        panelBusqueda.add(new JLabel("Buscar huésped:"));
-        txtBuscar = new JTextField(20);
-        panelBusqueda.add(txtBuscar);
+    private JPanel crearPanelBusqueda() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.setBorder(BorderFactory.createTitledBorder("Búsqueda"));
 
-        JPanel contenedorSuperior = new JPanel(new BorderLayout());
-        contenedorSuperior.add(panelSuperior, BorderLayout.NORTH);
-        contenedorSuperior.add(panelBusqueda, BorderLayout.SOUTH);
+        panel.add(new JLabel("Buscar huésped:"));
+        panel.add(txtBuscar);
 
-        add(contenedorSuperior, BorderLayout.NORTH);
+        return panel;
+    }
 
-
-        // Tabla
+    private void crearTabla() {
         modeloTabla = new DefaultTableModel(
                 new Object[]{"ID", "Nombre", "Apellido 1", "Apellido 2", "Nacionalidad"}, 0
         ) {
-            @Override public boolean isCellEditable(int row, int column) { return false; }
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
         };
 
         tabla = new JTable(modeloTabla);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         sorter = new TableRowSorter<>(modeloTabla);
         tabla.setRowSorter(sorter);
+    }
 
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
-
-        // Eventos
-        btnGuardar.addActionListener(e -> guardarHuesped());
-        btnCargar.addActionListener(e -> cargarTabla());
-        btnEliminar.addActionListener(e -> eliminarSeleccionado());
-        btnCargar.addActionListener(e -> cargarSeleccionadoEnFormulario());
-        btnActualizar.addActionListener(e -> actualizarHuesped());
-
+    private void configurarFiltroBusqueda() {
         txtBuscar.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -325,62 +216,19 @@ public class PanelHuespedes extends JPanel {
                 filtrarTabla();
             }
         });
-
-        cargarTabla();
     }
 
-    private void guardarHuesped() {
+    private void filtrarTabla() {
+        String texto = txtBuscar.getText().trim();
 
-        try {
-            Huesped huesped = new Huesped();
-
-            huesped.setNombre(txtNombre.getText().trim());
-            huesped.setApellido1(txtApellido1.getText().trim());
-            huesped.setApellido2(txtApellido2.getText().trim());
-            huesped.setSexo((String) cbSexo.getSelectedItem());
-            huesped.setNacionalidad(txtNacionalidad.getText().trim());
-            huesped.setFechaNacimiento(txtFechaNacimiento.getText().trim());
-            huesped.setLugarNacimiento(txtLugarNacimiento.getText().trim());
-            huesped.setDireccion(txtDireccion.getText().trim());
-            huesped.setCodigoPostal(txtCodigoPostal.getText().trim());
-            huesped.setPaisResidencia(txtPaisResidencia.getText().trim());
-            huesped.setTelefono(txtTelefono.getText().trim());
-            huesped.setEmail(txtEmail.getText().trim());
-
-            DocumentoIdentidad documento = new DocumentoIdentidad();
-
-            documento.setTipoDocumento((String) cbTipoDocumento.getSelectedItem());
-            documento.setNumeroDocumento(txtNumeroDocumento.getText().trim());
-            documento.setSoporteDocumento(txtSoporteDocumento.getText().trim());
-            documento.setFechaCaducidad(txtFechaCaducidad.getText().trim());
-
-            String errorValidacion = huespedService.validarHuesped(huesped);
-            if (errorValidacion != null) {
-                JOptionPane.showMessageDialog(this, errorValidacion);
-                return;
-            }
-
-            String errorDocumento = huespedService.validarDocumento(huesped, documento);
-            if (errorDocumento != null) {
-                JOptionPane.showMessageDialog(this, errorDocumento);
-                return;
-            }
-
-            huespedService.guardarHuespedConDocumento(huesped, documento);
-
-            JOptionPane.showMessageDialog(this, "Huésped guardado correctamente");
-
-            limpiarCampos();
-            cargarTabla();
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error guardando huésped: " + e.getMessage());
-            e.printStackTrace();
+        if (texto.isEmpty()) {
+            sorter.setRowFilter(null);
+        } else {
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + texto));
         }
     }
 
     private void cargarTabla() {
-
         try {
             modeloTabla.setRowCount(0);
 
@@ -397,62 +245,118 @@ public class PanelHuespedes extends JPanel {
             }
 
         } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error cargando huéspedes: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private void limpiarCampos() {
-        txtNombre.setText("");
-        txtApellido1.setText("");
-        txtApellido2.setText("");
-        cbSexo.setSelectedIndex(0);
-        txtNacionalidad.setText("");
-        idSeleccionado = null;
-        tabla.clearSelection();
-        txtFechaNacimiento.setText("");
-        txtLugarNacimiento.setText("");
-        txtDireccion.setText("");
-        txtCodigoPostal.setText("");
-        txtPaisResidencia.setText("");
-        txtTelefono.setText("");
-        txtEmail.setText("");
-        cbTipoDocumento.setSelectedIndex(0);
-        txtNumeroDocumento.setText("");
-        txtSoporteDocumento.setText("");
-        txtFechaCaducidad.setText("");
+    private void guardarHuesped() {
+        try {
+            Huesped huesped = construirHuespedDesdeFormulario();
+            DocumentoIdentidad documento = construirDocumentoDesdeFormulario();
+
+            String errorValidacion = huespedService.validarHuesped(huesped);
+            if (errorValidacion != null) {
+                JOptionPane.showMessageDialog(this, errorValidacion);
+                return;
+            }
+
+            String errorDocumento = huespedService.validarDocumento(huesped, documento);
+            if (errorDocumento != null) {
+                JOptionPane.showMessageDialog(this, errorDocumento);
+                return;
+            }
+
+            huespedService.guardarHuespedConDocumento(huesped, documento);
+
+            JOptionPane.showMessageDialog(this, "Huésped guardado correctamente.");
+
+            limpiarCampos();
+            cargarTabla();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error guardando huésped: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void actualizarHuesped() {
+        if (idSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Primero carga un huésped seleccionado para editarlo.");
+            return;
+        }
+
+        try {
+            Huesped huesped = construirHuespedDesdeFormulario();
+            huesped.setId(idSeleccionado);
+
+            DocumentoIdentidad documento = construirDocumentoDesdeFormulario();
+
+            String errorValidacion = huespedService.validarHuesped(huesped);
+            if (errorValidacion != null) {
+                JOptionPane.showMessageDialog(this, errorValidacion);
+                return;
+            }
+
+            String errorDocumento = huespedService.validarDocumento(huesped, documento);
+            if (errorDocumento != null) {
+                JOptionPane.showMessageDialog(this, errorDocumento);
+                return;
+            }
+
+            boolean ok = huespedService.actualizarHuespedConDocumento(huesped, documento);
+
+            if (ok) {
+                JOptionPane.showMessageDialog(this, "Huésped actualizado correctamente.");
+                limpiarCampos();
+                idSeleccionado = null;
+                cargarTabla();
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo actualizar.");
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error actualizando huésped: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void eliminarSeleccionado() {
         int fila = tabla.getSelectedRow();
 
         if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un huésped en la tabla primero.");
+            JOptionPane.showMessageDialog(this, "Selecciona un huésped en la tabla.");
             return;
         }
 
-        int id = (int) modeloTabla.getValueAt(fila, 0);
+        int filaModelo = tabla.convertRowIndexToModel(fila);
+        int id = (Integer) modeloTabla.getValueAt(filaModelo, 0);
 
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "¿Seguro que quieres eliminar el huésped con ID " + id + "?",
+                "¿Seguro que quieres eliminar el huésped seleccionado?",
                 "Confirmar eliminación",
                 JOptionPane.YES_NO_OPTION
         );
 
-        if (confirm != JOptionPane.YES_OPTION) return;
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
 
         try {
             boolean ok = huespedService.eliminarHuesped(id);
 
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Huésped eliminado correctamente.");
+                limpiarCampos();
+                idSeleccionado = null;
                 cargarTabla();
             } else {
-                JOptionPane.showMessageDialog(this, "No se pudo eliminar (¿ya no existe?).");
+                JOptionPane.showMessageDialog(this, "No se pudo eliminar el huésped.");
             }
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error eliminando: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error eliminando huésped: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -476,30 +380,32 @@ public class PanelHuespedes extends JPanel {
                 return;
             }
 
-            txtNombre.setText(h.getNombre() != null ? h.getNombre() : "");
-            txtApellido1.setText(h.getApellido1() != null ? h.getApellido1() : "");
-            txtApellido2.setText(h.getApellido2() != null ? h.getApellido2() : "");
+            txtNombre.setText(valor(h.getNombre()));
+            txtApellido1.setText(valor(h.getApellido1()));
+            txtApellido2.setText(valor(h.getApellido2()));
             cbSexo.setSelectedItem(h.getSexo() != null ? h.getSexo() : "");
-            txtNacionalidad.setText(h.getNacionalidad() != null ? h.getNacionalidad() : "");
-            txtFechaNacimiento.setText(h.getFechaNacimiento() != null ? h.getFechaNacimiento() : "");
-            txtLugarNacimiento.setText(h.getLugarNacimiento() != null ? h.getLugarNacimiento() : "");
-            txtDireccion.setText(h.getDireccion() != null ? h.getDireccion() : "");
-            txtCodigoPostal.setText(h.getCodigoPostal() != null ? h.getCodigoPostal() : "");
-            txtPaisResidencia.setText(h.getPaisResidencia() != null ? h.getPaisResidencia() : "");
-            txtTelefono.setText(h.getTelefono() != null ? h.getTelefono() : "");
-            txtEmail.setText(h.getEmail() != null ? h.getEmail() : "");
+            txtNacionalidad.setText(valor(h.getNacionalidad()));
+            txtFechaNacimiento.setText(valor(h.getFechaNacimiento()));
+            txtTelefono.setText(valor(h.getTelefono()));
+            txtEmail.setText(valor(h.getEmail()));
+
+            txtDireccion.setText(valor(h.getDireccion()));
+            txtMunicipio.setText(valor(h.getMunicipio()));
+            txtCodigoPostal.setText(valor(h.getCodigoPostal()));
+            txtPaisResidencia.setText(valor(h.getPaisResidencia()));
 
             DocumentoIdentidad doc = huespedService.buscarDocumentoPorHuespedId(idSeleccionado);
 
             if (doc != null) {
                 cbTipoDocumento.setSelectedItem(doc.getTipoDocumento() != null ? doc.getTipoDocumento() : "");
-                txtNumeroDocumento.setText(doc.getNumeroDocumento() != null ? doc.getNumeroDocumento() : "");
-                txtSoporteDocumento.setText(doc.getSoporteDocumento() != null ? doc.getSoporteDocumento() : "");
-                txtFechaCaducidad.setText(doc.getFechaCaducidad() != null ? doc.getFechaCaducidad() : "");
+                txtNumeroDocumento.setText(valor(doc.getNumeroDocumento()));
+                txtSoporteDocumento.setText(valor(doc.getSoporteDocumento()));
+                txtFechaCaducidad.setText(valor(doc.getFechaCaducidad()));
             } else {
                 cbTipoDocumento.setSelectedIndex(0);
                 txtNumeroDocumento.setText("");
                 txtSoporteDocumento.setText("");
+                txtFechaCaducidad.setText("");
             }
 
         } catch (Exception e) {
@@ -508,70 +414,78 @@ public class PanelHuespedes extends JPanel {
         }
     }
 
-    private void actualizarHuesped() {
-        if (idSeleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Primero carga un huésped seleccionado para editarlo.");
-            return;
-        }
+    private Huesped construirHuespedDesdeFormulario() {
+        Huesped h = new Huesped();
 
-        try {
-            Huesped h = new Huesped();
-            h.setId(idSeleccionado);
-            h.setNombre(txtNombre.getText().trim());
-            h.setApellido1(txtApellido1.getText().trim());
-            h.setApellido2(txtApellido2.getText().trim());
-            h.setSexo((String) cbSexo.getSelectedItem());
-            h.setNacionalidad(txtNacionalidad.getText().trim());
-            h.setFechaNacimiento(txtFechaNacimiento.getText().trim());
-            h.setLugarNacimiento(txtLugarNacimiento.getText().trim());
-            h.setDireccion(txtDireccion.getText().trim());
-            h.setCodigoPostal(txtCodigoPostal.getText().trim());
-            h.setPaisResidencia(txtPaisResidencia.getText().trim());
-            h.setTelefono(txtTelefono.getText().trim());
-            h.setEmail(txtEmail.getText().trim());
+        h.setNombre(txtNombre.getText().trim());
+        h.setApellido1(txtApellido1.getText().trim());
+        h.setApellido2(txtApellido2.getText().trim());
+        h.setSexo((String) cbSexo.getSelectedItem());
+        h.setNacionalidad(txtNacionalidad.getText().trim());
+        h.setFechaNacimiento(txtFechaNacimiento.getText().trim());
+        h.setTelefono(txtTelefono.getText().trim());
+        h.setEmail(txtEmail.getText().trim());
 
-            DocumentoIdentidad documento = new DocumentoIdentidad();
-            documento.setTipoDocumento((String) cbTipoDocumento.getSelectedItem());
-            documento.setNumeroDocumento(txtNumeroDocumento.getText().trim());
-            documento.setSoporteDocumento(txtSoporteDocumento.getText().trim());
+        h.setDireccion(txtDireccion.getText().trim());
+        h.setMunicipio(txtMunicipio.getText().trim());
+        h.setCodigoPostal(txtCodigoPostal.getText().trim());
+        h.setPaisResidencia(txtPaisResidencia.getText().trim());
 
-            String errorValidacion = huespedService.validarHuesped(h);
-            if (errorValidacion != null) {
-                JOptionPane.showMessageDialog(this, errorValidacion);
-                return;
-            }
-
-            String errorDocumento = huespedService.validarDocumento(h, documento);
-            if (errorDocumento != null) {
-                JOptionPane.showMessageDialog(this, errorDocumento);
-                return;
-            }
-
-            boolean ok = huespedService.actualizarHuespedConDocumento(h, documento);
-
-            if (ok) {
-                JOptionPane.showMessageDialog(this, "Huésped actualizado correctamente.");
-                limpiarCampos();
-                idSeleccionado = null;
-                cargarTabla();
-            } else {
-                JOptionPane.showMessageDialog(this, "No se pudo actualizar.");
-            }
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error actualizando huésped: " + e.getMessage());
-            e.printStackTrace();
-        }
+        return h;
     }
 
-    private void filtrarTabla() {
-        String texto = txtBuscar.getText().trim();
-
-        if (texto.isEmpty()) {
-            sorter.setRowFilter(null);
-        } else {
-            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + texto));
-        }
+    private DocumentoIdentidad construirDocumentoDesdeFormulario() {
+        DocumentoIdentidad documento = new DocumentoIdentidad();
+        documento.setTipoDocumento((String) cbTipoDocumento.getSelectedItem());
+        documento.setNumeroDocumento(txtNumeroDocumento.getText().trim());
+        documento.setSoporteDocumento(txtSoporteDocumento.getText().trim());
+        documento.setFechaCaducidad(txtFechaCaducidad.getText().trim());
+        return documento;
     }
 
+    private void limpiarCampos() {
+        txtNombre.setText("");
+        txtApellido1.setText("");
+        txtApellido2.setText("");
+        cbSexo.setSelectedIndex(0);
+        txtNacionalidad.setText("");
+        txtFechaNacimiento.setText("");
+        txtTelefono.setText("");
+        txtEmail.setText("");
+
+        txtDireccion.setText("");
+        txtMunicipio.setText("");
+        txtCodigoPostal.setText("");
+        txtPaisResidencia.setText("");
+
+        cbTipoDocumento.setSelectedIndex(0);
+        txtNumeroDocumento.setText("");
+        txtSoporteDocumento.setText("");
+        txtFechaCaducidad.setText("");
+
+        idSeleccionado = null;
+    }
+
+    private GridBagConstraints crearGbc() {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        return gbc;
+    }
+
+    private void addCampo(JPanel panel, GridBagConstraints gbc, int fila, String etiqueta, JComponent componente) {
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panel.add(new JLabel(etiqueta), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila;
+        gbc.weightx = 1;
+        panel.add(componente, gbc);
+    }
+
+    private String valor(String texto) {
+        return texto == null ? "" : texto;
+    }
 }
