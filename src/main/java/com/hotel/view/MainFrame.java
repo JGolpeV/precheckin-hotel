@@ -14,17 +14,16 @@ public class MainFrame extends JFrame {
         setMinimumSize(new Dimension(1000, 700));
         setLocationRelativeTo(null);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setLocationRelativeTo(null);
 
         JTabbedPane tabs = new JTabbedPane();
 
-        tabs.addTab("Huéspedes", new JScrollPane(new PanelHuespedes()));
+        tabs.addTab("Huéspedes", new PanelHuespedes());
 
         if ("ADMIN".equalsIgnoreCase(usuario.getRol())) {
-            tabs.addTab("Habitaciones", new JScrollPane(new PanelHabitaciones()));
+            tabs.addTab("Habitaciones", new PanelHabitaciones());
         }
 
-        tabs.addTab("Estancias", new JScrollPane(new PanelEstancias()));
+        tabs.addTab("Estancias", new PanelEstancias());
 
         setLayout(new BorderLayout());
         add(tabs, BorderLayout.CENTER);

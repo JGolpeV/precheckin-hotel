@@ -8,10 +8,11 @@ import com.hotel.service.EstanciaService;
 import com.hotel.service.XMLService;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class PanelEstancias extends JPanel {
 
@@ -20,23 +21,78 @@ public class PanelEstancias extends JPanel {
     private JSpinner spFechaSalida;
     private JComboBox<String> cbEstado;
     private JTextArea txtObservaciones;
+
     private JLabel lblHuespedSeleccionado;
     private Huesped huespedSeleccionado;
+
     private DefaultListModel<Huesped> modeloAcompanantes;
     private JList<Huesped> listaAcompanantes;
-    private final EstanciaService estanciaService = new EstanciaService();
-    private Integer idEstanciaSeleccionada = null;
+
     private JTable tablaEstancias;
-    private javax.swing.table.DefaultTableModel modeloTablaEstancias;
+    private DefaultTableModel modeloTablaEstancias;
+
     private JTextField txtFechaXML;
-    private JButton btnExportarXML;
+
+    private Integer idEstanciaSeleccionada = null;
+
+    private final EstanciaService estanciaService = new EstanciaService();
 
     public PanelEstancias() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // COMPONENTES
-                cbHabitacion = new JComboBox<>();
+        inicializarComponentes();
+
+        JButton btnSeleccionarHuesped = new JButton("Seleccionar huésped");
+        JButton btnAgregarAcompanante = new JButton("Añadir acompañante");
+        JButton btnEliminarAcompanante = new JButton("Quitar acompañante");
+        JButton btnBuscarHabitaciones = new JButton("Buscar");
+        JButton btnGuardar = new JButton("Guardar estancia");
+        JButton btnLimpiar = new JButton("Limpiar");
+
+        JButton btnCargarEstancia = new JButton("Cargar seleccionada");
+        JButton btnActualizarEstancia = new JButton("Actualizar");
+        JButton btnEliminar = new JButton("Eliminar");
+
+        JButton btnExportarXML = new JButton("Exportar XML");
+
+        JPanel panelFormulario = crearPanelFormulario(
+                btnSeleccionarHuesped,
+                btnAgregarAcompanante,
+                btnEliminarAcompanante,
+                btnBuscarHabitaciones,
+                btnGuardar,
+                btnLimpiar
+        );
+
+        JPanel panelTabla = crearPanelTabla(btnCargarEstancia, btnActualizarEstancia, btnEliminar);
+        JPanel panelXML = crearPanelXML(btnExportarXML);
+
+        add(panelFormulario, BorderLayout.NORTH);
+        add(panelTabla, BorderLayout.CENTER);
+        add(panelXML, BorderLayout.SOUTH);
+
+        btnGuardar.addActionListener(e -> guardarEstancia());
+        btnLimpiar.addActionListener(e -> limpiarFormulario());
+
+        btnBuscarHabitaciones.addActionListener(e -> buscarHabitacionesDisponibles());
+
+        btnSeleccionarHuesped.addActionListener(e -> abrirSelectorHuesped());
+        btnAgregarAcompanante.addActionListener(e -> agregarAcompanante());
+        btnEliminarAcompanante.addActionListener(e -> quitarAcompanante());
+
+        btnCargarEstancia.addActionListener(e -> cargarEstanciaSeleccionada());
+        btnActualizarEstancia.addActionListener(e -> actualizarEstancia());
+        btnEliminar.addActionListener(e -> eliminarEstanciaSeleccionada());
+
+        btnExportarXML.addActionListener(e -> exportarXML());
+
+        cargarCombos();
+        cargarTablaEstancias();
+    }
+
+    private void inicializarComponentes() {
+        cbHabitacion = new JComboBox<>();
         cbHabitacion.setEnabled(false);
 
         spFechaEntrada = new JSpinner(new SpinnerDateModel());
@@ -44,6 +100,7 @@ public class PanelEstancias extends JPanel {
 
         JSpinner.DateEditor editorEntrada = new JSpinner.DateEditor(spFechaEntrada, "dd-MM-yyyy");
         JSpinner.DateEditor editorSalida = new JSpinner.DateEditor(spFechaSalida, "dd-MM-yyyy");
+
         spFechaEntrada.setEditor(editorEntrada);
         spFechaSalida.setEditor(editorSalida);
 
@@ -65,186 +122,185 @@ public class PanelEstancias extends JPanel {
 
         modeloAcompanantes = new DefaultListModel<>();
         listaAcompanantes = new JList<>(modeloAcompanantes);
-        JScrollPane scrollAcompanantes = new JScrollPane(listaAcompanantes);
-        scrollAcompanantes.setPreferredSize(new Dimension(250, 80));
 
         txtFechaXML = new JTextField(10);
-        btnExportarXML = new JButton("Exportar XML");
+    }
 
-        JButton btnSeleccionarHuesped = new JButton("Seleccionar huésped");
-        JButton btnAgregarAcompanante = new JButton("Añadir acompañante");
-        JButton btnEliminarAcompanante = new JButton("Quitar acompañante");
-        JButton btnBuscarHabitaciones = new JButton("Buscar habitaciones disponibles");
-        JButton btnGuardar = new JButton("Guardar estancia");
-        JButton btnLimpiar = new JButton("Limpiar");
-        JButton btnEliminar = new JButton("Eliminar estancia");
-        JButton btnCargarEstancia = new JButton("Cargar estancia");
-        JButton btnActualizarEstancia = new JButton("Actualizar estancia");
+    private JPanel crearPanelFormulario(
+            JButton btnSeleccionarHuesped,
+            JButton btnAgregarAcompanante,
+            JButton btnEliminarAcompanante,
+            JButton btnBuscarHabitaciones,
+            JButton btnGuardar,
+            JButton btnLimpiar
+    ) {
+        JPanel panelFormulario = new JPanel(new GridLayout(1, 2, 10, 10));
+        panelFormulario.setBorder(BorderFactory.createTitledBorder("Datos de la estancia"));
 
+        JPanel panelIzquierdo = crearPanelHuespedes(
+                btnSeleccionarHuesped,
+                btnAgregarAcompanante,
+                btnEliminarAcompanante
+        );
 
+        JPanel panelDerecho = crearPanelReserva(
+                btnBuscarHabitaciones,
+                btnGuardar,
+                btnLimpiar
+        );
 
-        // PANEL FORMULARIO
-        JPanel panelFormulario = new JPanel(new GridBagLayout());
-        panelFormulario.setBorder(BorderFactory.createTitledBorder("Nueva estancia"));
+        panelFormulario.add(panelIzquierdo);
+        panelFormulario.add(panelDerecho);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(6, 8, 6, 8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
+        return panelFormulario;
+    }
+
+    private JPanel crearPanelHuespedes(
+            JButton btnSeleccionarHuesped,
+            JButton btnAgregarAcompanante,
+            JButton btnEliminarAcompanante
+    ) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Huéspedes"));
+
+        GridBagConstraints gbc = crearGbc();
 
         int fila = 0;
 
-        // Huésped titular
         gbc.gridx = 0;
         gbc.gridy = fila;
         gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Huésped titular:"), gbc);
+        panel.add(new JLabel("Titular:"), gbc);
 
         gbc.gridx = 1;
         gbc.gridy = fila;
         gbc.weightx = 1;
-        panelFormulario.add(lblHuespedSeleccionado, gbc);
+        panel.add(lblHuespedSeleccionado, gbc);
 
         gbc.gridx = 2;
         gbc.gridy = fila;
         gbc.weightx = 0;
-        panelFormulario.add(btnSeleccionarHuesped, gbc);
+        panel.add(btnSeleccionarHuesped, gbc);
 
-        // Acompañantes
         fila++;
+
         gbc.gridx = 0;
         gbc.gridy = fila;
         gbc.weightx = 0;
         gbc.anchor = GridBagConstraints.NORTHWEST;
-        panelFormulario.add(new JLabel("Acompañantes:"), gbc);
+        panel.add(new JLabel("Acompañantes:"), gbc);
 
-        JPanel panelAcompanantes = new JPanel(new BorderLayout(5, 5));
-        panelAcompanantes.add(scrollAcompanantes, BorderLayout.CENTER);
-
-        JPanel panelBotonesAcompanantes = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        panelBotonesAcompanantes.add(btnAgregarAcompanante);
-        panelBotonesAcompanantes.add(btnEliminarAcompanante);
-        panelAcompanantes.add(panelBotonesAcompanantes, BorderLayout.SOUTH);
+        JScrollPane scrollAcompanantes = new JScrollPane(listaAcompanantes);
+        scrollAcompanantes.setPreferredSize(new Dimension(350, 80));
 
         gbc.gridx = 1;
         gbc.gridy = fila;
         gbc.gridwidth = 2;
         gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel.add(scrollAcompanantes, gbc);
+
+        gbc.gridwidth = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panelFormulario.add(panelAcompanantes, gbc);
 
-        gbc.gridwidth = 1;
-
-        // Fechas en la misma fila
         fila++;
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Fecha entrada:"), gbc);
+
+        JPanel panelBotonesAcompanantes = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        panelBotonesAcompanantes.add(btnAgregarAcompanante);
+        panelBotonesAcompanantes.add(btnEliminarAcompanante);
 
         gbc.gridx = 1;
         gbc.gridy = fila;
-        gbc.weightx = 0.5;
-        panelFormulario.add(spFechaEntrada, gbc);
-
-        gbc.gridx = 2;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Fecha salida:"), gbc);
-
-        gbc.gridx = 3;
-        gbc.gridy = fila;
-        gbc.weightx = 0.5;
-        panelFormulario.add(spFechaSalida, gbc);
-
-        // Buscar habitaciones
-        fila++;
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Habitaciones:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = fila;
-        gbc.gridwidth = 3;
+        gbc.gridwidth = 2;
         gbc.weightx = 1;
-        panelFormulario.add(btnBuscarHabitaciones, gbc);
+        panel.add(panelBotonesAcompanantes, gbc);
 
         gbc.gridwidth = 1;
 
-        // Habitación
         fila++;
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Habitación:"), gbc);
 
-        gbc.gridx = 1;
-        gbc.gridy = fila;
-        gbc.gridwidth = 3;
-        gbc.weightx = 1;
-        panelFormulario.add(cbHabitacion, gbc);
-
-        gbc.gridwidth = 1;
-
-        // Estado
-        fila++;
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Estado:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = fila;
-        gbc.gridwidth = 3;
-        gbc.weightx = 1;
-        panelFormulario.add(cbEstado, gbc);
-
-        gbc.gridwidth = 1;
-
-        // Observaciones
-        fila++;
         gbc.gridx = 0;
         gbc.gridy = fila;
         gbc.weightx = 0;
         gbc.anchor = GridBagConstraints.NORTHWEST;
-        panelFormulario.add(new JLabel("Observaciones:"), gbc);
+        panel.add(new JLabel("Observaciones:"), gbc);
 
         gbc.gridx = 1;
         gbc.gridy = fila;
-        gbc.gridwidth = 3;
+        gbc.gridwidth = 2;
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.BOTH;
-        panelFormulario.add(new JScrollPane(txtObservaciones), gbc);
+        panel.add(new JScrollPane(txtObservaciones), gbc);
 
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        return panel;
+    }
 
-        // Botones formulario
-        fila++;
-        JPanel panelBotonesFormulario = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        panelBotonesFormulario.add(btnLimpiar);
-        panelBotonesFormulario.add(btnGuardar);
+    private JPanel crearPanelReserva(
+            JButton btnBuscarHabitaciones,
+            JButton btnGuardar,
+            JButton btnLimpiar
+    ) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Reserva y habitación"));
+
+        GridBagConstraints gbc = crearGbc();
+
+        int fila = 0;
+
+        addCampo(panel, gbc, fila++, "Fecha entrada:", spFechaEntrada);
+        addCampo(panel, gbc, fila++, "Fecha salida:", spFechaSalida);
 
         gbc.gridx = 0;
         gbc.gridy = fila;
-        gbc.gridwidth = 4;
+        gbc.weightx = 0;
+        panel.add(new JLabel("Habitación:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila;
         gbc.weightx = 1;
-        panelFormulario.add(panelBotonesFormulario, gbc);
+        panel.add(cbHabitacion, gbc);
+
+        gbc.gridx = 2;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panel.add(btnBuscarHabitaciones, gbc);
+
+        fila++;
+
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panel.add(new JLabel("Estado:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1;
+        panel.add(cbEstado, gbc);
 
         gbc.gridwidth = 1;
 
-        //EXPORTADOR
-        JPanel panelXML = new JPanel();
+        fila++;
 
-        panelXML.add(new JLabel("Fecha (YYYY-MM-DD):"));
-        panelXML.add(txtFechaXML);
-        panelXML.add(btnExportarXML);
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelBotones.add(btnGuardar);
+        panelBotones.add(btnLimpiar);
 
-        add(panelXML, BorderLayout.SOUTH);
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.gridwidth = 3;
+        gbc.weightx = 1;
+        panel.add(panelBotones, gbc);
 
-        // TABLA
-        modeloTablaEstancias = new javax.swing.table.DefaultTableModel(
+        return panel;
+    }
+
+    private JPanel crearPanelTabla(
+            JButton btnCargarEstancia,
+            JButton btnActualizarEstancia,
+            JButton btnEliminar
+    ) {
+        modeloTablaEstancias = new DefaultTableModel(
                 new Object[]{"ID", "Huésped", "Habitación", "Fecha entrada", "Fecha salida", "Estado"}, 0
         ) {
             @Override
@@ -254,44 +310,35 @@ public class PanelEstancias extends JPanel {
         };
 
         tablaEstancias = new JTable(modeloTablaEstancias);
+        tablaEstancias.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         JScrollPane scrollTabla = new JScrollPane(tablaEstancias);
 
         JPanel panelTabla = new JPanel(new BorderLayout(5, 5));
         panelTabla.setBorder(BorderFactory.createTitledBorder("Estancias registradas"));
-        panelTabla.add(scrollTabla, BorderLayout.CENTER);
 
-        JPanel panelBotonesTabla = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel panelBotonesTabla = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         panelBotonesTabla.add(btnCargarEstancia);
         panelBotonesTabla.add(btnActualizarEstancia);
         panelBotonesTabla.add(btnEliminar);
-        panelTabla.add(panelBotonesTabla, BorderLayout.SOUTH);
 
+        panelTabla.add(panelBotonesTabla, BorderLayout.NORTH);
+        panelTabla.add(scrollTabla, BorderLayout.CENTER);
 
-        // LAYOUT PRINCIPAL
-        add(panelFormulario, BorderLayout.NORTH);
-        add(panelTabla, BorderLayout.CENTER);
-
-        // EVENTOS
-        btnGuardar.addActionListener(e -> guardarEstancia());
-        btnEliminar.addActionListener(e -> eliminarEstanciaSeleccionada());
-        btnBuscarHabitaciones.addActionListener(e -> {
-            buscarHabitacionesDisponibles();
-            cbHabitacion.setEnabled(cbHabitacion.getItemCount() > 0);
-        });
-        btnSeleccionarHuesped.addActionListener(e -> abrirSelectorHuesped());
-        btnAgregarAcompanante.addActionListener(e -> agregarAcompanante());
-        btnEliminarAcompanante.addActionListener(e -> quitarAcompanante());
-        btnLimpiar.addActionListener(e -> limpiarFormulario());
-        btnCargarEstancia.addActionListener(e -> cargarEstanciaSeleccionada());
-        btnActualizarEstancia.addActionListener(e -> actualizarEstancia());
-        btnExportarXML.addActionListener(e -> exportarXML());
-
-        // CARGA INICIAL
-        cargarCombos();
-        cargarTablaEstancias();
+        return panelTabla;
     }
 
-    //Verificar que fecha entrada es menos que fecha salida
+    private JPanel crearPanelXML(JButton btnExportarXML) {
+        JPanel panelXML = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelXML.setBorder(BorderFactory.createTitledBorder("Exportación XML"));
+
+        panelXML.add(new JLabel("Fecha entrada (YYYY-MM-DD):"));
+        panelXML.add(txtFechaXML);
+        panelXML.add(btnExportarXML);
+
+        return panelXML;
+    }
+
     private boolean fechasValidas() {
         Date entrada = (Date) spFechaEntrada.getValue();
         Date salida = (Date) spFechaSalida.getValue();
@@ -305,27 +352,30 @@ public class PanelEstancias extends JPanel {
         }
 
         return true;
-        }
+    }
 
     private void cargarCombos() {
         cbHabitacion.removeAllItems();
+        cbHabitacion.setEnabled(false);
     }
 
     private void cargarTablaEstancias() {
         try {
             modeloTablaEstancias.setRowCount(0);
 
-            java.util.List<String[]> lista = estanciaService.listarResumenEstancias();
+            List<String[]> lista = estanciaService.listarResumenEstancias();
 
             for (String[] fila : lista) {
                 modeloTablaEstancias.addRow(fila);
             }
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Error cargando estancias: " + e.getMessage(),
                     "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.ERROR_MESSAGE
+            );
             e.printStackTrace();
         }
     }
@@ -336,16 +386,14 @@ public class PanelEstancias extends JPanel {
         }
 
         if (huespedSeleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Debes seleccionar un huésped.");
+            JOptionPane.showMessageDialog(this, "Debes seleccionar un huésped titular.");
             return;
         }
+
         HabitacionItem habitacionSeleccionada = (HabitacionItem) cbHabitacion.getSelectedItem();
 
-        String fechaEntrada = formatearFecha((Date) spFechaEntrada.getValue());
-        String fechaSalida = formatearFecha((Date) spFechaSalida.getValue());
-
         if (habitacionSeleccionada == null) {
-            JOptionPane.showMessageDialog(this, "Debes seleccionar una habitación libre.");
+            JOptionPane.showMessageDialog(this, "Debes seleccionar una habitación disponible.");
             return;
         }
 
@@ -353,19 +401,11 @@ public class PanelEstancias extends JPanel {
             return;
         }
 
-        if (fechaEntrada.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "La fecha de entrada es obligatoria.");
-            return;
-        }
-
-        if (fechaSalida.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "La fecha de salida es obligatoria.");
-            return;
-        }
+        String fechaEntrada = formatearFecha((Date) spFechaEntrada.getValue());
+        String fechaSalida = formatearFecha((Date) spFechaSalida.getValue());
 
         try {
-
-            java.util.List<Integer> acompanantesIds = new java.util.ArrayList<>();
+            List<Integer> acompanantesIds = new java.util.ArrayList<>();
 
             for (int i = 0; i < modeloAcompanantes.size(); i++) {
                 acompanantesIds.add(modeloAcompanantes.get(i).getId());
@@ -378,41 +418,35 @@ public class PanelEstancias extends JPanel {
             estancia.setEstado((String) cbEstado.getSelectedItem());
             estancia.setObservaciones(txtObservaciones.getText().trim());
 
-            int id = estanciaService.guardarEstanciaConHuespedes(estancia, huespedSeleccionado.getId(), acompanantesIds);
+            int id = estanciaService.guardarEstanciaConHuespedes(
+                    estancia,
+                    huespedSeleccionado.getId(),
+                    acompanantesIds
+            );
 
             JOptionPane.showMessageDialog(this, "Estancia guardada correctamente. ID: " + id);
 
             limpiarFormulario();
-            cargarCombos();
             cargarTablaEstancias();
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Error guardando estancia: " + e.getMessage(),
                     "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.ERROR_MESSAGE
+            );
             e.printStackTrace();
         }
     }
 
     private void buscarHabitacionesDisponibles() {
-
         if (!fechasValidas()) {
             return;
         }
 
         String fechaEntrada = formatearFecha((Date) spFechaEntrada.getValue());
         String fechaSalida = formatearFecha((Date) spFechaSalida.getValue());
-
-        if (fechaEntrada.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debes introducir la fecha de entrada.");
-            return;
-        }
-
-        if (fechaSalida.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debes introducir la fecha de salida.");
-            return;
-        }
 
         try {
             cbHabitacion.removeAllItems();
@@ -430,6 +464,7 @@ public class PanelEstancias extends JPanel {
             }
 
             if (habitaciones.isEmpty()) {
+                cbHabitacion.setEnabled(false);
                 JOptionPane.showMessageDialog(this, "No hay habitaciones disponibles para esas fechas.");
                 return;
             }
@@ -439,11 +474,15 @@ public class PanelEstancias extends JPanel {
                 cbHabitacion.addItem(new HabitacionItem(h.getId(), texto, h.getCapacidad()));
             }
 
+            cbHabitacion.setEnabled(true);
+
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Error buscando habitaciones disponibles: " + e.getMessage(),
                     "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.ERROR_MESSAGE
+            );
             e.printStackTrace();
         }
     }
@@ -456,11 +495,12 @@ public class PanelEstancias extends JPanel {
             return;
         }
 
-        int idEstancia = Integer.parseInt(modeloTablaEstancias.getValueAt(fila, 0).toString());
+        int filaModelo = tablaEstancias.convertRowIndexToModel(fila);
+        int idEstancia = Integer.parseInt(modeloTablaEstancias.getValueAt(filaModelo, 0).toString());
 
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "¿Seguro que quieres eliminar la estancia con ID " + idEstancia + "?",
+                "¿Seguro que quieres eliminar la estancia seleccionada?",
                 "Confirmar eliminación",
                 JOptionPane.YES_NO_OPTION
         );
@@ -474,17 +514,19 @@ public class PanelEstancias extends JPanel {
 
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Estancia eliminada correctamente.");
+                limpiarFormulario();
                 cargarTablaEstancias();
-                cargarCombos();
             } else {
                 JOptionPane.showMessageDialog(this, "No se pudo eliminar la estancia.");
             }
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Error eliminando estancia: " + e.getMessage(),
                     "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.ERROR_MESSAGE
+            );
             e.printStackTrace();
         }
     }
@@ -502,13 +544,7 @@ public class PanelEstancias extends JPanel {
 
         if (seleccionado != null) {
             huespedSeleccionado = seleccionado;
-
-            String texto = seleccionado.getNombre() + " " + seleccionado.getApellido1();
-            if (seleccionado.getApellido2() != null && !seleccionado.getApellido2().isBlank()) {
-                texto += " " + seleccionado.getApellido2();
-            }
-
-            lblHuespedSeleccionado.setText(texto);
+            lblHuespedSeleccionado.setText(seleccionado.toString());
         }
     }
 
@@ -556,7 +592,7 @@ public class PanelEstancias extends JPanel {
             return false;
         }
 
-        int totalHuespedes = 1 + modeloAcompanantes.size(); // 1 titular + acompañantes
+        int totalHuespedes = 1 + modeloAcompanantes.size();
         int capacidadHabitacion = habitacionSeleccionada.getCapacidad();
 
         if (totalHuespedes > capacidadHabitacion) {
@@ -592,39 +628,36 @@ public class PanelEstancias extends JPanel {
 
             idEstanciaSeleccionada = idEstancia;
 
-            // Titular
             huespedSeleccionado = detalle.getTitular();
+
             if (huespedSeleccionado != null) {
-                String texto = huespedSeleccionado.getNombre() + " " + huespedSeleccionado.getApellido1();
-                if (huespedSeleccionado.getApellido2() != null && !huespedSeleccionado.getApellido2().isBlank()) {
-                    texto += " " + huespedSeleccionado.getApellido2();
-                }
-                lblHuespedSeleccionado.setText(texto);
+                lblHuespedSeleccionado.setText(huespedSeleccionado.toString());
             } else {
                 lblHuespedSeleccionado.setText("Ningún huésped seleccionado");
             }
 
-            // Acompañantes
             modeloAcompanantes.clear();
-            for (com.hotel.model.Huesped h : detalle.getAcompanantes()) {
+
+            for (Huesped h : detalle.getAcompanantes()) {
                 modeloAcompanantes.addElement(h);
             }
 
-            // Fechas
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             spFechaEntrada.setValue(sdf.parse(detalle.getEstancia().getFechaEntrada()));
             spFechaSalida.setValue(sdf.parse(detalle.getEstancia().getFechaSalida()));
 
-            // Estado y observaciones
             cbEstado.setSelectedItem(detalle.getEstancia().getEstado());
-            txtObservaciones.setText(detalle.getEstancia().getObservaciones() != null ? detalle.getEstancia().getObservaciones() : "");
+            txtObservaciones.setText(
+                    detalle.getEstancia().getObservaciones() != null
+                            ? detalle.getEstancia().getObservaciones()
+                            : ""
+            );
 
-            // Buscar habitaciones disponibles con esas fechas
             buscarHabitacionesDisponibles();
 
-            // Seleccionar habitación actual
             for (int i = 0; i < cbHabitacion.getItemCount(); i++) {
-                com.hotel.model.HabitacionItem item = cbHabitacion.getItemAt(i);
+                HabitacionItem item = cbHabitacion.getItemAt(i);
+
                 if (item.getId() == detalle.getEstancia().getHabitacionId()) {
                     cbHabitacion.setSelectedIndex(i);
                     break;
@@ -632,10 +665,12 @@ public class PanelEstancias extends JPanel {
             }
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Error cargando estancia: " + e.getMessage(),
                     "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.ERROR_MESSAGE
+            );
             e.printStackTrace();
         }
     }
@@ -651,11 +686,12 @@ public class PanelEstancias extends JPanel {
         }
 
         if (huespedSeleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Debes seleccionar un huésped.");
+            JOptionPane.showMessageDialog(this, "Debes seleccionar un huésped titular.");
             return;
         }
 
-        com.hotel.model.HabitacionItem habitacionSeleccionada = (com.hotel.model.HabitacionItem) cbHabitacion.getSelectedItem();
+        HabitacionItem habitacionSeleccionada = (HabitacionItem) cbHabitacion.getSelectedItem();
+
         if (habitacionSeleccionada == null) {
             JOptionPane.showMessageDialog(this, "Debes seleccionar una habitación disponible.");
             return;
@@ -665,11 +701,11 @@ public class PanelEstancias extends JPanel {
             return;
         }
 
-        String fechaEntrada = formatearFecha((java.util.Date) spFechaEntrada.getValue());
-        String fechaSalida = formatearFecha((java.util.Date) spFechaSalida.getValue());
+        String fechaEntrada = formatearFecha((Date) spFechaEntrada.getValue());
+        String fechaSalida = formatearFecha((Date) spFechaSalida.getValue());
 
         try {
-            com.hotel.model.Estancia estancia = new com.hotel.model.Estancia();
+            Estancia estancia = new Estancia();
             estancia.setId(idEstanciaSeleccionada);
             estancia.setFechaEntrada(fechaEntrada);
             estancia.setFechaSalida(fechaSalida);
@@ -677,7 +713,8 @@ public class PanelEstancias extends JPanel {
             estancia.setEstado((String) cbEstado.getSelectedItem());
             estancia.setObservaciones(txtObservaciones.getText().trim());
 
-            java.util.List<Integer> acompanantesIds = new java.util.ArrayList<>();
+            List<Integer> acompanantesIds = new java.util.ArrayList<>();
+
             for (int i = 0; i < modeloAcompanantes.size(); i++) {
                 acompanantesIds.add(modeloAcompanantes.get(i).getId());
             }
@@ -692,16 +729,17 @@ public class PanelEstancias extends JPanel {
                 JOptionPane.showMessageDialog(this, "Estancia actualizada correctamente.");
                 limpiarFormulario();
                 cargarTablaEstancias();
-                cbHabitacion.removeAllItems();
             } else {
                 JOptionPane.showMessageDialog(this, "No se pudo actualizar la estancia.");
             }
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Error actualizando estancia: " + e.getMessage(),
                     "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.ERROR_MESSAGE
+            );
             e.printStackTrace();
         }
     }
@@ -720,9 +758,14 @@ public class PanelEstancias extends JPanel {
 
         cbEstado.setSelectedIndex(0);
         txtObservaciones.setText("");
+
         huespedSeleccionado = null;
         lblHuespedSeleccionado.setText("Ningún huésped seleccionado");
+
         modeloAcompanantes.clear();
+
+        idEstanciaSeleccionada = null;
+        tablaEstancias.clearSelection();
     }
 
     private void exportarXML() {
@@ -738,7 +781,6 @@ public class PanelEstancias extends JPanel {
 
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("Guardar XML");
-
             fileChooser.setSelectedFile(new java.io.File("PV_" + fecha.replace("-", "_") + ".xml"));
 
             int seleccion = fileChooser.showSaveDialog(this);
@@ -755,11 +797,33 @@ public class PanelEstancias extends JPanel {
                 JOptionPane.showMessageDialog(this, "XML generado correctamente.");
             }
 
-
-
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error generando XML: " + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    private GridBagConstraints crearGbc() {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 6, 5, 6);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        return gbc;
+    }
+
+    private void addCampo(JPanel panel, GridBagConstraints gbc, int fila, String etiqueta, JComponent componente) {
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel(etiqueta), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila;
+        gbc.weightx = 1;
+        gbc.gridwidth = 2;
+        panel.add(componente, gbc);
+
+        gbc.gridwidth = 1;
     }
 }

@@ -6,7 +6,6 @@ import com.hotel.dao.HuespedDAO;
 import com.hotel.model.DocumentoIdentidad;
 import com.hotel.model.Estancia;
 import com.hotel.model.EstanciaExportacionXML;
-import com.hotel.model.Habitacion;
 import com.hotel.model.Huesped;
 import com.hotel.model.HuespedConDocumento;
 
@@ -15,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,12 +56,10 @@ public class XMLService {
 
         for (EstanciaExportacionXML item : datos) {
             Estancia estancia = item.getEstancia();
-            Habitacion habitacion = item.getHabitacion();
             List<HuespedConDocumento> huespedes = item.getHuespedes();
 
             sb.append("    <comunicacion>\n");
 
-            // CONTRATO
             sb.append("      <contrato>\n");
             sb.append("        <referencia>").append(generarReferenciaContrato(estancia)).append("</referencia>\n");
             sb.append("        <fechaContrato>").append(estancia.getFechaEntrada()).append("</fechaContrato>\n");
@@ -77,7 +73,6 @@ public class XMLService {
             sb.append("        </pago>\n");
             sb.append("      </contrato>\n");
 
-            // PERSONAS
             for (HuespedConDocumento hcd : huespedes) {
                 Huesped h = hcd.getHuesped();
                 DocumentoIdentidad doc = hcd.getDocumentoIdentidad();
@@ -118,7 +113,6 @@ public class XMLService {
                 sb.append("        <direccion>\n");
                 sb.append("          <direccion>").append(escapeXml(valor(h.getDireccion()))).append("</direccion>\n");
 
-
                 if (!vacio(h.getMunicipio())) {
                     sb.append("          <nombreMunicipio>")
                             .append(escapeXml(h.getMunicipio()))
@@ -135,10 +129,6 @@ public class XMLService {
 
                 if (!vacio(h.getEmail())) {
                     sb.append("        <correo>").append(escapeXml(h.getEmail())).append("</correo>\n");
-                }
-
-                if (!vacio(h.getParentesco())) {
-                    sb.append("        <parentesco>").append(escapeXml(h.getParentesco())).append("</parentesco>\n");
                 }
 
                 sb.append("      </persona>\n");
@@ -164,7 +154,6 @@ public class XMLService {
     }
 
     private String formatearFechaHoraXML(String fecha) {
-        // Para XML generamos medianoche
         return fecha + "T00:00:00";
     }
 

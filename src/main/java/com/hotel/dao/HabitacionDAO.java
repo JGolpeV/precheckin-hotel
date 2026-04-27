@@ -192,32 +192,4 @@ public class HabitacionDAO {
         return null;
     }
 
-    // Pendiente borrar este metodo ya que ahora no se listan por estado si no por fecha
-    public List<Habitacion> listarLibres() throws SQLException {
-        String sql = """
-            SELECT id, numero, tipo, capacidad, estado
-            FROM habitacion
-            WHERE estado = 'LIBRE'
-            ORDER BY numero
-            """;
-
-        List<Habitacion> lista = new ArrayList<>();
-
-        try (Connection conn = ConexionSQLite.conectar();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                Habitacion h = new Habitacion();
-                h.setId(rs.getInt("id"));
-                h.setNumero(rs.getString("numero"));
-                h.setTipo(rs.getString("tipo"));
-                h.setCapacidad(rs.getInt("capacidad"));
-                h.setEstado(rs.getString("estado"));
-                lista.add(h);
-            }
-        }
-
-        return lista;
-    }
 }

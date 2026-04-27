@@ -1,6 +1,7 @@
 package com.hotel.model;
 
 public class DocumentoIdentidad {
+
     private Integer id;
     private Integer huespedId;
     private String tipoDocumento;
@@ -8,27 +9,51 @@ public class DocumentoIdentidad {
     private String soporteDocumento;
     private String fechaCaducidad;
 
-    public Integer getId() { return id; }
+    public Integer getId() {
+        return id;
+    }
 
-    public void setId(Integer id) { this.id = id; }
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-    public Integer getHuespedId() { return huespedId; }
+    public Integer getHuespedId() {
+        return huespedId;
+    }
 
-    public void setHuespedId(Integer huespedId) { this.huespedId = huespedId; }
+    public void setHuespedId(Integer huespedId) {
+        this.huespedId = huespedId;
+    }
 
-    public String getTipoDocumento() { return tipoDocumento; }
+    public String getTipoDocumento() {
+        return tipoDocumento;
+    }
 
-    public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }
+    public void setTipoDocumento(String tipoDocumento) {
+        this.tipoDocumento = tipoDocumento;
+    }
 
-    public String getNumeroDocumento() { return numeroDocumento; }
+    public String getNumeroDocumento() {
+        return numeroDocumento;
+    }
 
-    public void setNumeroDocumento(String numeroDocumento) { this.numeroDocumento = numeroDocumento; }
+    public void setNumeroDocumento(String numeroDocumento) {
+        this.numeroDocumento = numeroDocumento;
+    }
 
-    public String getSoporteDocumento() { return soporteDocumento; }
+    public String getSoporteDocumento() {
+        return soporteDocumento;
+    }
 
-    public void setSoporteDocumento(String soporteDocumento) { this.soporteDocumento = soporteDocumento; }
+    public void setSoporteDocumento(String soporteDocumento) {
+        this.soporteDocumento = soporteDocumento;
+    }
 
-    public String getFechaCaducidad() { return fechaCaducidad; }
+    public String getFechaCaducidad() {
+        return fechaCaducidad;
+    }
 
-    public void setFechaCaducidad(String fechaCaducidad) { this.fechaCaducidad = fechaCaducidad; }
+    public void setFechaCaducidad(String fechaCaducidad) {
+        this.fechaCaducidad = fechaCaducidad;
+    }
 }

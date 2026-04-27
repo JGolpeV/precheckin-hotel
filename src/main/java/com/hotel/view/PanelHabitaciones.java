@@ -1,6 +1,5 @@
 package com.hotel.view;
 
-import com.hotel.dao.HabitacionDAO;
 import com.hotel.model.Habitacion;
 import com.hotel.service.HabitacionService;
 
@@ -21,57 +20,83 @@ public class PanelHabitaciones extends JPanel {
 
     private Integer idSeleccionado = null;
 
-    private HabitacionService habitacionService = new HabitacionService();
+    private final HabitacionService habitacionService = new HabitacionService();
 
     public PanelHabitaciones() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel panelSuperior = new JPanel(new BorderLayout(10, 10));
+        JPanel panelSuperior = new JPanel(new BorderLayout());
 
-        // Formulario
+        JPanel contenedorFormulario = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBorder(BorderFactory.createTitledBorder("Datos de la habitación"));
+        panelFormulario.setPreferredSize(new Dimension(520, 210));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(6, 8, 6, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        txtNumero = new JTextField(20);
+        txtNumero = new JTextField();
         cbTipo = new JComboBox<>(new String[]{"Individual", "Doble", "Triple"});
-        cbTipo.addActionListener(e -> actualizarCapacidadSegunTipo());
         spCapacidad = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
         spCapacidad.setEnabled(false);
         cbEstado = new JComboBox<>(new String[]{"LIBRE", "OCUPADA"});
 
-        // Fila 0
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
+        Dimension campoDimension = new Dimension(220, 26);
+        txtNumero.setPreferredSize(campoDimension);
+        cbTipo.setPreferredSize(campoDimension);
+        spCapacidad.setPreferredSize(campoDimension);
+        cbEstado.setPreferredSize(campoDimension);
+
+        cbTipo.addActionListener(e -> actualizarCapacidadSegunTipo());
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
         panelFormulario.add(new JLabel("Número:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1;
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
         panelFormulario.add(txtNumero, gbc);
 
-        // Fila 1
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
         panelFormulario.add(new JLabel("Tipo:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 1;
+
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
         panelFormulario.add(cbTipo, gbc);
 
-        // Fila 2
-        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 0;
         panelFormulario.add(new JLabel("Capacidad:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 2; gbc.weightx = 1;
+
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.weightx = 0;
         panelFormulario.add(spCapacidad, gbc);
 
-        // Fila 3
-        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 0;
         panelFormulario.add(new JLabel("Estado:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 3; gbc.weightx = 1;
+
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.weightx = 0;
         panelFormulario.add(cbEstado, gbc);
 
-        panelSuperior.add(panelFormulario, BorderLayout.CENTER);
+        contenedorFormulario.add(panelFormulario);
+        panelSuperior.add(contenedorFormulario, BorderLayout.NORTH);
 
-        // Botones
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
+
         JButton btnGuardar = new JButton("Guardar");
         JButton btnCargarSel = new JButton("Cargar seleccionado");
         JButton btnActualizar = new JButton("Actualizar");
@@ -86,18 +111,20 @@ public class PanelHabitaciones extends JPanel {
 
         add(panelSuperior, BorderLayout.NORTH);
 
-        // Tabla
         modeloTabla = new DefaultTableModel(
                 new Object[]{"ID", "Número", "Tipo", "Capacidad", "Estado"}, 0
         ) {
-            @Override public boolean isCellEditable(int row, int column) { return false; }
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
         };
 
         tabla = new JTable(modeloTabla);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         add(new JScrollPane(tabla), BorderLayout.CENTER);
 
-        // Eventos
         btnGuardar.addActionListener(e -> guardarHabitacion());
         btnCargarSel.addActionListener(e -> cargarSeleccionadoEnFormulario());
         btnActualizar.addActionListener(e -> actualizarHabitacion());
@@ -108,6 +135,7 @@ public class PanelHabitaciones extends JPanel {
 
     private void guardarHabitacion() {
         String numero = txtNumero.getText().trim();
+
         if (numero.isEmpty()) {
             JOptionPane.showMessageDialog(this, "El número de habitación es obligatorio.");
             return;
@@ -127,20 +155,16 @@ public class PanelHabitaciones extends JPanel {
             cargarTabla();
 
         } catch (Exception ex) {
-
-            String mensaje = ex.getMessage().toLowerCase();
+            String mensaje = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
 
             if (mensaje.contains("unique") && mensaje.contains("habitacion.numero")) {
-
                 JOptionPane.showMessageDialog(
                         this,
                         "Ya existe una habitación con ese número.",
                         "Número duplicado",
                         JOptionPane.WARNING_MESSAGE
                 );
-
             } else {
-
                 JOptionPane.showMessageDialog(
                         this,
                         "Error guardando: " + ex.getMessage(),
@@ -154,32 +178,46 @@ public class PanelHabitaciones extends JPanel {
     private void cargarTabla() {
         try {
             modeloTabla.setRowCount(0);
+
             List<Habitacion> lista = habitacionService.listarTodas();
 
             for (Habitacion h : lista) {
                 modeloTabla.addRow(new Object[]{
-                        h.getId(), h.getNumero(), h.getTipo(), h.getCapacidad(), h.getEstado()
+                        h.getId(),
+                        h.getNumero(),
+                        h.getTipo(),
+                        h.getCapacidad(),
+                        h.getEstado()
                 });
             }
+
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error cargando tabla: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error cargando tabla: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
             ex.printStackTrace();
         }
     }
 
     private void cargarSeleccionadoEnFormulario() {
         int fila = tabla.getSelectedRow();
+
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona una habitación en la tabla.");
             return;
         }
 
-        idSeleccionado = (Integer) modeloTabla.getValueAt(fila, 0);
+        int filaModelo = tabla.convertRowIndexToModel(fila);
 
-        txtNumero.setText((String) modeloTabla.getValueAt(fila, 1));
-        cbTipo.setSelectedItem((String) modeloTabla.getValueAt(fila, 2));
-        spCapacidad.setValue((Integer) modeloTabla.getValueAt(fila, 3));
-        cbEstado.setSelectedItem((String) modeloTabla.getValueAt(fila, 4));
+        idSeleccionado = (Integer) modeloTabla.getValueAt(filaModelo, 0);
+
+        txtNumero.setText((String) modeloTabla.getValueAt(filaModelo, 1));
+        cbTipo.setSelectedItem((String) modeloTabla.getValueAt(filaModelo, 2));
+        spCapacidad.setValue((Integer) modeloTabla.getValueAt(filaModelo, 3));
+        cbEstado.setSelectedItem((String) modeloTabla.getValueAt(filaModelo, 4));
     }
 
     private void actualizarHabitacion() {
@@ -189,6 +227,7 @@ public class PanelHabitaciones extends JPanel {
         }
 
         String numero = txtNumero.getText().trim();
+
         if (numero.isEmpty()) {
             JOptionPane.showMessageDialog(this, "El número de habitación es obligatorio.");
             return;
@@ -209,12 +248,11 @@ public class PanelHabitaciones extends JPanel {
                 limpiarCampos();
                 cargarTabla();
             } else {
-                JOptionPane.showMessageDialog(this, "No se pudo actualizar (¿ya no existe?).");
+                JOptionPane.showMessageDialog(this, "No se pudo actualizar la habitación.");
             }
 
         } catch (Exception ex) {
-
-            String mensaje = (ex.getMessage() != null) ? ex.getMessage().toLowerCase() : "";
+            String mensaje = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
 
             if (mensaje.contains("unique") && mensaje.contains("habitacion.numero")) {
                 JOptionPane.showMessageDialog(
@@ -236,33 +274,44 @@ public class PanelHabitaciones extends JPanel {
 
     private void eliminarSeleccionado() {
         int fila = tabla.getSelectedRow();
+
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona una habitación en la tabla.");
             return;
         }
 
-        int id = (Integer) modeloTabla.getValueAt(fila, 0);
+        int filaModelo = tabla.convertRowIndexToModel(fila);
+        int id = (Integer) modeloTabla.getValueAt(filaModelo, 0);
 
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "¿Seguro que quieres eliminar la habitación con ID " + id + "?",
+                "¿Seguro que quieres eliminar la habitación seleccionada?",
                 "Confirmar eliminación",
                 JOptionPane.YES_NO_OPTION
         );
 
-        if (confirm != JOptionPane.YES_OPTION) return;
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
 
         try {
             boolean ok = habitacionService.eliminarHabitacion(id);
+
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Habitación eliminada.");
                 limpiarCampos();
                 cargarTabla();
             } else {
-                JOptionPane.showMessageDialog(this, "No se pudo eliminar (¿ya no existe?).");
+                JOptionPane.showMessageDialog(this, "No se pudo eliminar la habitación.");
             }
+
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error eliminando: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No se puede eliminar la habitación porque tiene estancias asociadas.",
+                    "Habitación en uso",
+                    JOptionPane.WARNING_MESSAGE
+            );
             ex.printStackTrace();
         }
     }
@@ -278,18 +327,15 @@ public class PanelHabitaciones extends JPanel {
     }
 
     private void actualizarCapacidadSegunTipo() {
-
         String tipo = (String) cbTipo.getSelectedItem();
 
         switch (tipo) {
             case "Individual":
                 spCapacidad.setValue(1);
                 break;
-
             case "Doble":
                 spCapacidad.setValue(2);
                 break;
-
             case "Triple":
                 spCapacidad.setValue(3);
                 break;

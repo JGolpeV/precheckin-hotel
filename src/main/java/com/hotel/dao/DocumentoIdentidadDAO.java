@@ -30,12 +30,12 @@ public class DocumentoIdentidadDAO {
         }
     }
 
-    public void actualizar(DocumentoIdentidad doc) throws SQLException {
+    public boolean actualizar(DocumentoIdentidad doc) throws SQLException {
         String sql = """
-            UPDATE documento_identidad
-            SET tipo_documento = ?, numero_documento = ?, numero_soporte = ?, fecha_caducidad = ?
-            WHERE huesped_id = ?
-        """;
+        UPDATE documento_identidad
+        SET tipo_documento = ?, numero_documento = ?, numero_soporte = ?, fecha_caducidad = ?
+        WHERE huesped_id = ?
+    """;
 
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -46,7 +46,7 @@ public class DocumentoIdentidadDAO {
             ps.setString(4, doc.getFechaCaducidad());
             ps.setInt(5, doc.getHuespedId());
 
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         }
     }
 

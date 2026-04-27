@@ -38,14 +38,6 @@ public class HuespedService {
         return null;
     }
 
-    public int guardarHuesped(Huesped huesped) throws SQLException {
-        return huespedDAO.insertar(huesped);
-    }
-
-    public boolean actualizarHuesped(Huesped huesped) throws SQLException {
-        return huespedDAO.actualizar(huesped);
-    }
-
     public boolean eliminarHuesped(int id) throws SQLException {
         return huespedDAO.eliminarPorId(id);
     }
@@ -128,8 +120,5 @@ public class HuespedService {
         }
     }
 
-    public List<Huesped> listarParaCombo() throws SQLException {
-        return huespedDAO.listarParaCombo();
-    }
 }
 

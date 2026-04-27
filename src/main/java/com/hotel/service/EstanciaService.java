@@ -27,9 +27,6 @@ public class EstanciaService {
         return habitacionDAO.listarDisponibles(fechaEntrada, fechaSalida);
     }
 
-    public int guardarEstancia(Estancia estancia, int huespedId) throws SQLException {
-        return estanciaDAO.insertar(estancia, huespedId);
-    }
 
     public boolean eliminarEstancia(int estanciaId) throws SQLException {
         return estanciaDAO.eliminarPorId(estanciaId);

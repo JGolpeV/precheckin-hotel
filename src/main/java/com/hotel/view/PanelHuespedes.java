@@ -224,7 +224,7 @@ public class PanelHuespedes extends JPanel {
         if (texto.isEmpty()) {
             sorter.setRowFilter(null);
         } else {
-            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + texto));
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(texto)));
         }
     }
 
