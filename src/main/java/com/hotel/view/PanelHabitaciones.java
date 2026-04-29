@@ -26,16 +26,28 @@ public class PanelHabitaciones extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel panelSuperior = new JPanel(new BorderLayout());
+        JPanel panelPrincipal = new JPanel(new BorderLayout(15, 10));
 
-        JPanel contenedorFormulario = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JPanel panelIzquierdo = crearPanelFormulario();
+        JPanel panelDerecho = crearPanelTabla();
+
+        panelPrincipal.add(panelIzquierdo, BorderLayout.WEST);
+        panelPrincipal.add(panelDerecho, BorderLayout.CENTER);
+
+        add(panelPrincipal, BorderLayout.CENTER);
+
+        cargarTabla();
+    }
+
+    private JPanel crearPanelFormulario() {
+        JPanel panelContenedor = new JPanel(new BorderLayout(10, 10));
+        panelContenedor.setPreferredSize(new Dimension(390, 0));
 
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBorder(BorderFactory.createTitledBorder("Datos de la habitación"));
-        panelFormulario.setPreferredSize(new Dimension(520, 210));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(6, 8, 6, 8);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         txtNumero = new JTextField();
@@ -44,7 +56,7 @@ public class PanelHabitaciones extends JPanel {
         spCapacidad.setEnabled(false);
         cbEstado = new JComboBox<>(new String[]{"LIBRE", "OCUPADA"});
 
-        Dimension campoDimension = new Dimension(220, 26);
+        Dimension campoDimension = new Dimension(210, 26);
         txtNumero.setPreferredSize(campoDimension);
         cbTipo.setPreferredSize(campoDimension);
         spCapacidad.setPreferredSize(campoDimension);
@@ -52,53 +64,18 @@ public class PanelHabitaciones extends JPanel {
 
         cbTipo.addActionListener(e -> actualizarCapacidadSegunTipo());
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Número:"), gbc);
+        int fila = 0;
 
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.weightx = 0;
-        panelFormulario.add(txtNumero, gbc);
+        addCampo(panelFormulario, gbc, fila++, "Número:", txtNumero);
+        addCampo(panelFormulario, gbc, fila++, "Tipo:", cbTipo);
+        addCampo(panelFormulario, gbc, fila++, "Capacidad:", spCapacidad);
+        addCampo(panelFormulario, gbc, fila++, "Estado:", cbEstado);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Tipo:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.weightx = 0;
-        panelFormulario.add(cbTipo, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Capacidad:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        gbc.weightx = 0;
-        panelFormulario.add(spCapacidad, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.weightx = 0;
-        panelFormulario.add(new JLabel("Estado:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 3;
-        gbc.weightx = 0;
-        panelFormulario.add(cbEstado, gbc);
-
-        contenedorFormulario.add(panelFormulario);
-        panelSuperior.add(contenedorFormulario, BorderLayout.NORTH);
-
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
+        JPanel panelBotones = new JPanel(new GridLayout(2, 2, 8, 8));
+        panelBotones.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
         JButton btnGuardar = new JButton("Guardar");
-        JButton btnCargarSel = new JButton("Cargar seleccionado");
+        JButton btnCargarSel = new JButton("Cargar");
         JButton btnActualizar = new JButton("Actualizar");
         JButton btnEliminar = new JButton("Eliminar");
 
@@ -107,10 +84,21 @@ public class PanelHabitaciones extends JPanel {
         panelBotones.add(btnActualizar);
         panelBotones.add(btnEliminar);
 
-        panelSuperior.add(panelBotones, BorderLayout.SOUTH);
+        btnGuardar.addActionListener(e -> guardarHabitacion());
+        btnCargarSel.addActionListener(e -> cargarSeleccionadoEnFormulario());
+        btnActualizar.addActionListener(e -> actualizarHabitacion());
+        btnEliminar.addActionListener(e -> eliminarSeleccionado());
 
-        add(panelSuperior, BorderLayout.NORTH);
+        JPanel panelFormularioCompleto = new JPanel(new BorderLayout());
+        panelFormularioCompleto.add(panelFormulario, BorderLayout.NORTH);
+        panelFormularioCompleto.add(panelBotones, BorderLayout.CENTER);
 
+        panelContenedor.add(panelFormularioCompleto, BorderLayout.NORTH);
+
+        return panelContenedor;
+    }
+
+    private JPanel crearPanelTabla() {
         modeloTabla = new DefaultTableModel(
                 new Object[]{"ID", "Número", "Tipo", "Capacidad", "Estado"}, 0
         ) {
@@ -123,14 +111,42 @@ public class PanelHabitaciones extends JPanel {
         tabla = new JTable(modeloTabla);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
+        configurarTabla();
 
-        btnGuardar.addActionListener(e -> guardarHabitacion());
-        btnCargarSel.addActionListener(e -> cargarSeleccionadoEnFormulario());
-        btnActualizar.addActionListener(e -> actualizarHabitacion());
-        btnEliminar.addActionListener(e -> eliminarSeleccionado());
+        JScrollPane scrollTabla = new JScrollPane(tabla);
 
-        cargarTabla();
+        JPanel panelTabla = new JPanel(new BorderLayout(5, 5));
+        panelTabla.setBorder(BorderFactory.createTitledBorder("Habitaciones registradas"));
+        panelTabla.add(scrollTabla, BorderLayout.CENTER);
+
+        return panelTabla;
+    }
+
+    private void configurarTabla() {
+        tabla.getColumnModel().getColumn(0).setMinWidth(0);
+        tabla.getColumnModel().getColumn(0).setMaxWidth(0);
+        tabla.getColumnModel().getColumn(0).setPreferredWidth(0);
+
+        tabla.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        tabla.setRowHeight(24);
+        tabla.getTableHeader().setReorderingAllowed(false);
+
+        tabla.getColumnModel().getColumn(1).setPreferredWidth(120);
+        tabla.getColumnModel().getColumn(2).setPreferredWidth(180);
+        tabla.getColumnModel().getColumn(3).setPreferredWidth(100);
+        tabla.getColumnModel().getColumn(4).setPreferredWidth(140);
+    }
+
+    private void addCampo(JPanel panel, GridBagConstraints gbc, int fila, String etiqueta, JComponent componente) {
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
+        panel.add(new JLabel(etiqueta), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = fila;
+        gbc.weightx = 1;
+        panel.add(componente, gbc);
     }
 
     private void guardarHabitacion() {

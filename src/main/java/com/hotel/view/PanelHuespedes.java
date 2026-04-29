@@ -9,9 +9,11 @@ import javax.swing.RowFilter;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class PanelHuespedes extends JPanel {
 
@@ -184,7 +186,7 @@ public class PanelHuespedes extends JPanel {
 
     private void crearTabla() {
         modeloTabla = new DefaultTableModel(
-                new Object[]{"ID", "Nombre", "Apellido 1", "Apellido 2", "Nacionalidad"}, 0
+                new Object[]{"ID", "Huésped", "Documento", "Teléfono", "Email", "Nacionalidad"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -197,6 +199,15 @@ public class PanelHuespedes extends JPanel {
 
         sorter = new TableRowSorter<>(modeloTabla);
         tabla.setRowSorter(sorter);
+
+        ocultarColumnaId();
+    }
+
+    private void ocultarColumnaId() {
+        TableColumn columnaId = tabla.getColumnModel().getColumn(0);
+        columnaId.setMinWidth(0);
+        columnaId.setMaxWidth(0);
+        columnaId.setPreferredWidth(0);
     }
 
     private void configurarFiltroBusqueda() {
@@ -224,7 +235,7 @@ public class PanelHuespedes extends JPanel {
         if (texto.isEmpty()) {
             sorter.setRowFilter(null);
         } else {
-            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(texto)));
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(texto)));
         }
     }
 
@@ -235,11 +246,14 @@ public class PanelHuespedes extends JPanel {
             List<Huesped> lista = huespedService.listarTodos();
 
             for (Huesped h : lista) {
+                DocumentoIdentidad doc = huespedService.buscarDocumentoPorHuespedId(h.getId());
+
                 modeloTabla.addRow(new Object[]{
                         h.getId(),
-                        h.getNombre(),
-                        h.getApellido1(),
-                        h.getApellido2(),
+                        formatearNombreTabla(h),
+                        formatearDocumentoTabla(doc),
+                        h.getTelefono(),
+                        h.getEmail(),
                         h.getNacionalidad()
                 });
             }
@@ -248,6 +262,43 @@ public class PanelHuespedes extends JPanel {
             JOptionPane.showMessageDialog(this, "Error cargando huéspedes: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private String formatearNombreTabla(Huesped h) {
+        String apellido1 = valor(h.getApellido1());
+        String apellido2 = valor(h.getApellido2());
+        String nombre = valor(h.getNombre());
+
+        String apellidos = (apellido1 + " " + apellido2).trim();
+
+        if (apellidos.isEmpty()) {
+            return nombre;
+        }
+
+        if (nombre.isEmpty()) {
+            return apellidos;
+        }
+
+        return apellidos + ", " + nombre;
+    }
+
+    private String formatearDocumentoTabla(DocumentoIdentidad doc) {
+        if (doc == null) {
+            return "";
+        }
+
+        String tipo = valor(doc.getTipoDocumento());
+        String numero = valor(doc.getNumeroDocumento());
+
+        if (tipo.isEmpty()) {
+            return numero;
+        }
+
+        if (numero.isEmpty()) {
+            return tipo;
+        }
+
+        return tipo + " " + numero;
     }
 
     private void guardarHuesped() {
@@ -309,7 +360,6 @@ public class PanelHuespedes extends JPanel {
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Huésped actualizado correctamente.");
                 limpiarCampos();
-                idSeleccionado = null;
                 cargarTabla();
             } else {
                 JOptionPane.showMessageDialog(this, "No se pudo actualizar.");
@@ -349,14 +399,16 @@ public class PanelHuespedes extends JPanel {
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Huésped eliminado correctamente.");
                 limpiarCampos();
-                idSeleccionado = null;
                 cargarTabla();
             } else {
                 JOptionPane.showMessageDialog(this, "No se pudo eliminar el huésped.");
             }
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error eliminando huésped: " + e.getMessage());
+            JOptionPane.showMessageDialog(this,
+                    "No se puede eliminar el huésped porque tiene estancias asociadas.",
+                    "Huésped en uso",
+                    JOptionPane.WARNING_MESSAGE);
             e.printStackTrace();
         }
     }
@@ -464,6 +516,7 @@ public class PanelHuespedes extends JPanel {
         txtFechaCaducidad.setText("");
 
         idSeleccionado = null;
+        tabla.clearSelection();
     }
 
     private GridBagConstraints crearGbc() {

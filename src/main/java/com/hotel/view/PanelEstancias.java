@@ -32,6 +32,7 @@ public class PanelEstancias extends JPanel {
     private DefaultTableModel modeloTablaEstancias;
 
     private JTextField txtFechaXML;
+    private JTextField txtFiltroFechaEntrada;
 
     private Integer idEstanciaSeleccionada = null;
 
@@ -124,6 +125,7 @@ public class PanelEstancias extends JPanel {
         listaAcompanantes = new JList<>(modeloAcompanantes);
 
         txtFechaXML = new JTextField(10);
+        txtFiltroFechaEntrada = new JTextField(10);
     }
 
     private JPanel crearPanelFormulario(
@@ -301,7 +303,7 @@ public class PanelEstancias extends JPanel {
             JButton btnEliminar
     ) {
         modeloTablaEstancias = new DefaultTableModel(
-                new Object[]{"ID", "Huésped", "Habitación", "Fecha entrada", "Fecha salida", "Estado"}, 0
+                new Object[]{"ID Estancia", "Huésped", "Habitación", "Fecha entrada", "Fecha salida", "Estado"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -311,19 +313,39 @@ public class PanelEstancias extends JPanel {
 
         tablaEstancias = new JTable(modeloTablaEstancias);
         tablaEstancias.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tablaEstancias.getTableHeader().setReorderingAllowed(false);
 
         JScrollPane scrollTabla = new JScrollPane(tablaEstancias);
 
         JPanel panelTabla = new JPanel(new BorderLayout(5, 5));
         panelTabla.setBorder(BorderFactory.createTitledBorder("Estancias registradas"));
 
+        JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        JButton btnFiltrarFecha = new JButton("Filtrar");
+        JButton btnVerTodas = new JButton("Ver todas");
+
+        panelFiltro.add(new JLabel("Fecha entrada (YYYY-MM-DD):"));
+        panelFiltro.add(txtFiltroFechaEntrada);
+        panelFiltro.add(btnFiltrarFecha);
+        panelFiltro.add(btnVerTodas);
+
         JPanel panelBotonesTabla = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         panelBotonesTabla.add(btnCargarEstancia);
         panelBotonesTabla.add(btnActualizarEstancia);
         panelBotonesTabla.add(btnEliminar);
 
-        panelTabla.add(panelBotonesTabla, BorderLayout.NORTH);
+        JPanel panelSuperiorTabla = new JPanel(new BorderLayout());
+        panelSuperiorTabla.add(panelFiltro, BorderLayout.NORTH);
+        panelSuperiorTabla.add(panelBotonesTabla, BorderLayout.SOUTH);
+
+        panelTabla.add(panelSuperiorTabla, BorderLayout.NORTH);
         panelTabla.add(scrollTabla, BorderLayout.CENTER);
+
+        btnFiltrarFecha.addActionListener(e -> filtrarTablaPorFechaEntrada());
+        btnVerTodas.addActionListener(e -> {
+            txtFiltroFechaEntrada.setText("");
+            cargarTablaEstancias();
+        });
 
         return panelTabla;
     }
@@ -373,6 +395,38 @@ public class PanelEstancias extends JPanel {
             JOptionPane.showMessageDialog(
                     this,
                     "Error cargando estancias: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            e.printStackTrace();
+        }
+    }
+
+    private void filtrarTablaPorFechaEntrada() {
+        String fecha = txtFiltroFechaEntrada.getText().trim();
+
+        if (fecha.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Introduce una fecha de entrada.");
+            return;
+        }
+
+        try {
+            modeloTablaEstancias.setRowCount(0);
+
+            List<String[]> lista = estanciaService.listarResumenEstancias();
+
+            for (String[] fila : lista) {
+                String fechaEntrada = fila[3];
+
+                if (fecha.equals(fechaEntrada)) {
+                    modeloTablaEstancias.addRow(fila);
+                }
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error filtrando estancias: " + e.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE
             );
