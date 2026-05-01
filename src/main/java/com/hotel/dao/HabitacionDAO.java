@@ -125,6 +125,7 @@ public class HabitacionDAO {
         return lista;
     }
 
+    // Permite que la habitación actual siga apareciendo como disponible al editar una estancia
     public List<Habitacion> listarDisponiblesExcluyendoEstancia(String fechaEntrada, String fechaSalida, int estanciaIdExcluir) throws SQLException {
         String sql = """
             SELECT h.id, h.numero, h.tipo, h.capacidad, h.estado

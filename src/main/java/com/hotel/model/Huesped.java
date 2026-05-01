@@ -25,14 +25,6 @@ public class Huesped {
     public Huesped() {
     }
 
-    public Huesped(String nombre, String apellido1, String apellido2) {
-        this.nombre = nombre;
-        this.apellido1 = apellido1;
-        this.apellido2 = apellido2;
-    }
-
-
-
     public Integer getId() {
         return id;
     }

@@ -50,11 +50,4 @@ public class HabitacionService {
         return habitacionDAO.listarTodas();
     }
 
-    public List<Habitacion> listarDisponibles(String fechaEntrada, String fechaSalida) throws SQLException {
-        return habitacionDAO.listarDisponibles(fechaEntrada, fechaSalida);
-    }
-
-    public List<Habitacion> listarDisponiblesExcluyendoEstancia(String fechaEntrada, String fechaSalida, int estanciaIdExcluir) throws SQLException {
-        return habitacionDAO.listarDisponiblesExcluyendoEstancia(fechaEntrada, fechaSalida, estanciaIdExcluir);
-    }
 }

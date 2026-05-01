@@ -8,8 +8,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class SeleccionHuespedDialog extends JDialog {
 
@@ -50,6 +52,8 @@ public class SeleccionHuespedDialog extends JDialog {
 
         sorter = new TableRowSorter<>(modeloTabla);
         tabla.setRowSorter(sorter);
+        ocultarColumnaId();
+        tabla.getTableHeader().setReorderingAllowed(false);
 
         add(new JScrollPane(tabla), BorderLayout.CENTER);
 
@@ -116,7 +120,7 @@ public class SeleccionHuespedDialog extends JDialog {
         if (texto.isEmpty()) {
             sorter.setRowFilter(null);
         } else {
-            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + texto));
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(texto)));
         }
     }
 
@@ -143,5 +147,12 @@ public class SeleccionHuespedDialog extends JDialog {
 
     public Huesped getHuespedSeleccionado() {
         return huespedSeleccionado;
+    }
+
+    private void ocultarColumnaId() {
+        TableColumn columnaId = tabla.getColumnModel().getColumn(0);
+        columnaId.setMinWidth(0);
+        columnaId.setMaxWidth(0);
+        columnaId.setPreferredWidth(0);
     }
 }

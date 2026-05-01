@@ -29,6 +29,6 @@ public class EstanciaExportacionXML {
     }
 
     public void setHuespedes(List<HuespedConDocumento> huespedes) {
-        this.huespedes = huespedes;
+        this.huespedes = huespedes != null ? huespedes : new ArrayList<>();
     }
 }

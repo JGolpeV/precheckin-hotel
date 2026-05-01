@@ -92,13 +92,11 @@ public class EstanciaDAO {
 
             try (PreparedStatement psRelacion = conn.prepareStatement(sqlRelacion)) {
 
-                // Titular
                 psRelacion.setInt(1, estanciaId);
                 psRelacion.setInt(2, huespedTitularId);
                 psRelacion.setString(3, "TITULAR");
                 psRelacion.executeUpdate();
 
-                // Acompañantes
                 if (acompanantesIds != null) {
                     for (Integer acompananteId : acompanantesIds) {
                         psRelacion.setInt(1, estanciaId);
@@ -132,21 +130,26 @@ public class EstanciaDAO {
 
     public boolean eliminarPorId(int estanciaId) throws SQLException {
         String sqlBuscarHabitacion = """
-            SELECT habitacion_id
-            FROM estancia
-            WHERE id = ?
-            """;
+        SELECT habitacion_id
+        FROM estancia
+        WHERE id = ?
+    """;
+
+        String sqlEliminarRelaciones = """
+        DELETE FROM estancia_huesped
+        WHERE estancia_id = ?
+    """;
 
         String sqlEliminarEstancia = """
-            DELETE FROM estancia
-            WHERE id = ?
-            """;
+        DELETE FROM estancia
+        WHERE id = ?
+    """;
 
         String sqlLiberarHabitacion = """
-            UPDATE habitacion
-            SET estado = 'LIBRE'
-            WHERE id = ?
-            """;
+        UPDATE habitacion
+        SET estado = 'LIBRE'
+        WHERE id = ?
+    """;
 
         Connection conn = null;
 
@@ -158,6 +161,7 @@ public class EstanciaDAO {
 
             try (PreparedStatement psBuscar = conn.prepareStatement(sqlBuscarHabitacion)) {
                 psBuscar.setInt(1, estanciaId);
+
                 try (ResultSet rs = psBuscar.executeQuery()) {
                     if (rs.next()) {
                         habitacionId = rs.getInt("habitacion_id");
@@ -168,8 +172,14 @@ public class EstanciaDAO {
                 }
             }
 
+            try (PreparedStatement psRelaciones = conn.prepareStatement(sqlEliminarRelaciones)) {
+                psRelaciones.setInt(1, estanciaId);
+                psRelaciones.executeUpdate();
+            }
+
             try (PreparedStatement psEliminar = conn.prepareStatement(sqlEliminarEstancia)) {
                 psEliminar.setInt(1, estanciaId);
+
                 int filas = psEliminar.executeUpdate();
 
                 if (filas == 0) {
@@ -193,6 +203,7 @@ public class EstanciaDAO {
                 conn.rollback();
             }
             throw e;
+
         } finally {
             if (conn != null) {
                 conn.setAutoCommit(true);

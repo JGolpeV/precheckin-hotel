@@ -29,6 +29,6 @@ public class EstanciaDetalle {
     }
 
     public void setAcompanantes(List<Huesped> acompanantes) {
-        this.acompanantes = acompanantes;
+        this.acompanantes = acompanantes != null ? acompanantes : new ArrayList<>();
     }
 }
